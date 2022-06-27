@@ -9,6 +9,9 @@ const Programa = require("./seguridad/programa");
 const Cliente = require("./catastro/clientes");
 const Persona = require("./catastro/persona");
 
+//Stock
+const Sucursal = require("./stock/sucursal");
+
 const Server = require("./server");
 
 module.exports = {
@@ -20,4 +23,5 @@ module.exports = {
   Programa,
   Cliente,
   Persona,
+  Sucursal,
 };

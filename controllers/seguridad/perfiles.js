@@ -1,92 +1,81 @@
-const { response } = require('express');
-const { Perfil } = require('../../models');
+const { response } = require("express");
+const { Perfil } = require("../../models");
 
-
-const getAll = async(req, res = response) => {
-
-    const { limite = 10, desde = 0 } = req.query;
-    const query = { estado: true };
-
+const getAll = async (req, res = response) => {
+  const { limite = 10, desde = 0, paginado = true } = req.query;
+  if (paginado === "true") {
     const [total, data] = await Promise.all([
-        Perfil.countDocuments(query),
-        Perfil.find(query)
-        .populate('usuario', 'nombre')
-        .skip(Number(desde))
-        .limit(Number(limite))
+      Perfil.countDocuments(),
+      Perfil.find().skip(Number(desde)).limit(Number(limite)),
     ]);
 
     res.json({
-        total,
-        data
+      total,
+      data,
     });
+  } else {
+    const data = await Perfil.find();
+    res.json(data);
+  }
 };
 
-const getById = async(req, res = response) => {
+const getById = async (req, res = response) => {
+  const { id } = req.params;
+  const modelDB = await Perfil.findById(id);
 
-    const { id } = req.params;
-    const modelDB = await Perfil.findById(id);
-    // .populate('usuario', 'nombre');
-
-    res.json(modelDB);
-
+  res.json(modelDB);
 };
 
-const add = async(req, res = response) => {
+const add = async (req, res = response) => {
+  const descripcion = req.body.descripcion.toUpperCase();
 
-    const descripcion = req.body.descripcion.toUpperCase();
+  const modelDB = await Perfil.findOne({ descripcion });
 
-    const modelDB = await Perfil.findOne({ descripcion });
+  if (modelDB) {
+    return res.status(400).json({
+      msg: `El perfil ${modelDB.descripcion}, ya existe`,
+    });
+  }
 
-    if (modelDB) {
-        return res.status(400).json({
-            msg: `El perfil ${ modelDB.descripcion }, ya existe`
-        });
-    }
+  // Generar la data a guardar
+  const data = {
+    descripcion,
+  };
 
-    // Generar la data a guardar
-    const data = {
-        descripcion,
+  const newModel = new Perfil(data);
 
-    };
+  // Guardar DB
+  await newModel.save();
 
-    const newModel = new Perfil(data);
-
-    // Guardar DB
-    await newModel.save();
-
-    res.json(newModel);
-
+  res.json(newModel);
 };
 
-const update = async(req, res = response) => {
+const update = async (req, res = response) => {
+  const { id } = req.params;
+  const { estado, usuario, ...data } = req.body;
 
-    const { id } = req.params;
-    const { estado, usuario, ...data } = req.body;
+  data.descripcion = data.descripcion.toUpperCase();
 
-    data.descripcion = data.descripcion.toUpperCase();
-    //  data.usuario = req.usuario._id;
+  const newModel = await Perfil.findByIdAndUpdate(id, data, { new: true });
 
-    const newModel = await Perfil.findByIdAndUpdate(id, data, { new: true });
-
-    res.json(newModel);
-
+  res.json(newModel);
 };
 
-const inactivate = async(req, res = response) => {
+const inactivate = async (req, res = response) => {
+  const { id } = req.params;
+  const modelBorrado = await Perfil.findByIdAndUpdate(
+    id,
+    { estado: false },
+    { new: true }
+  );
 
-    const { id } = req.params;
-    const modelBorrado = await Perfil.findByIdAndUpdate(id, { estado: false }, { new: true });
-
-    res.json(modelBorrado);
+  res.json(modelBorrado);
 };
-
-
-
 
 module.exports = {
-    add,
-    getAll,
-    getById,
-    update,
-    inactivate
+  add,
+  getAll,
+  getById,
+  update,
+  inactivate,
 };
