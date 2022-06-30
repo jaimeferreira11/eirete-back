@@ -19,6 +19,7 @@ class Server {
       personas: "/api/personas",
       clientes: "/api/clientes",
       sucursales: "/api/sucursales",
+      lineaArticulos: "/api/linea-articulos",
     };
 
     // Conectar a base de datos
@@ -65,6 +66,10 @@ class Server {
     this.app.use(this.paths.personas, require("../routes/personas"));
     this.app.use(this.paths.sucursales, require("../routes/sucursales"));
     this.app.use(this.paths.uploads, require("../routes/uploads"));
+    this.app.use(
+      this.paths.lineaArticulos,
+      require("../routes/linea-articulos")
+    );
   }
 
   listen() {

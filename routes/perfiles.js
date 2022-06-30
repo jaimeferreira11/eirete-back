@@ -1,16 +1,16 @@
-const { Router } = require('express');
-const { check } = require('express-validator');
+const { Router } = require("express");
+const { check } = require("express-validator");
 
-const { validarJWT, validarCampos, esAdminRole } = require('../middlewares');
+const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
 const {
-    add,
-    getAll,
-    getById,
-    update,
-    inactivate
-} = require('../controllers/seguridad/perfiles');
-const { existePerfilPorId } = require('../helpers/db-validators');
+  add,
+  getAll,
+  getById,
+  update,
+  inactivate,
+} = require("../controllers/seguridad/perfiles");
+const { existePerfilPorId } = require("../helpers/db-validators");
 
 const router = Router();
 
@@ -19,39 +19,54 @@ const router = Router();
  */
 
 //  Obtener todas las categorias - publico
-router.get('/', getAll);
+router.get("/", [validarJWT, validarCampos], getAll);
 
 // Obtener una categoria por id - publico
-router.get('/:id', [
-    check('id', 'No es un id de Mongo válido').isMongoId(),
-    check('id').custom(existePerfilPorId),
+router.get(
+  "/:id",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existePerfilPorId),
     validarCampos,
-], getById);
+  ],
+  getById
+);
 
 // Crear categoria - privado - cualquier persona con un token válido
-router.post('/', [
+router.post(
+  "/",
+  [
     validarJWT,
-    check('descripcion', 'La descripcion es obligatoria').not().isEmpty(),
-    validarCampos
-], add);
+    check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
+    validarCampos,
+  ],
+  add
+);
 
 // Actualizar - privado - cualquiera con token válido
-router.put('/:id', [
+router.put(
+  "/:id",
+  [
     validarJWT,
-    check('descripcion', 'la descripcion es obligatorio').not().isEmpty(),
-    check('id').custom(existePerfilPorId),
-    validarCampos
-], update);
+    check("descripcion", "la descripcion es obligatorio").not().isEmpty(),
+    check("id").custom(existePerfilPorId),
+    validarCampos,
+  ],
+  update
+);
 
 // Borrar una categoria - Admin
-router.delete('/:id', [
+router.delete(
+  "/:id",
+  [
     validarJWT,
     esAdminRole,
-    check('id', 'No es un id de Mongo válido').isMongoId(),
-    check('id').custom(existePerfilPorId),
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existePerfilPorId),
     validarCampos,
-], inactivate);
-
-
+  ],
+  inactivate
+);
 
 module.exports = router;
