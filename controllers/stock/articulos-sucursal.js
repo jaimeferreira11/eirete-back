@@ -1,14 +1,18 @@
 const { response } = require("express");
-const { Articulo } = require("../../models");
+const { ArticuloSucursal } = require("../../models");
 
-const getAll = async (req, res = response) => {
+const getAllBySucursal = async (req, res = response) => {
+  const { id } = req.params;
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
-  const query = { estado };
+  const query = {
+    sucursal: id,
+    estado,
+  };
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
-      Articulo.countDocuments(query),
-      Articulo.find(query)
+      ArticuloSucursal.countDocuments(query),
+      ArticuloSucursal.find(query)
         .populate({
           path: "lineaArticulo",
           select: "-__v",
@@ -28,7 +32,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await Articulo.find(query)
+    const data = await ArticuloSucursal.find(query)
       .populate({
         path: "lineaArticulo",
         select: "-__v",
@@ -45,7 +49,7 @@ const getAll = async (req, res = response) => {
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await Articulo.findById(id)
+  const modelDB = await ArticuloSucursal.findById(id)
     .populate({
       path: "lineaArticulo",
       select: "-__v",
@@ -62,7 +66,7 @@ const getById = async (req, res = response) => {
 
 const getByCodigo = async (req, res = response) => {
   const { codigo } = req.query;
-  console.log(`Buscando el articulo por codigo  ${codigo}`);
+  console.log(`Buscando el Articul oSucursal por codigo  ${codigo}`);
 
   const modelDB = await existeArticuloByCodigo(codigo);
   if (!modelDB) {
@@ -79,7 +83,7 @@ const add = async (req, res = response) => {
   try {
     const { _id, codigo } = req.body;
     if (_id) {
-      const modelDB = await Articulo.findById(_id);
+      const modelDB = await ArticuloSucursal.findById(_id);
       if (modelDB) {
         return res.status(400).json({
           msg: `El articulo ${modelDB.codigo}, ya existe`,
@@ -110,20 +114,7 @@ const update = async (req, res = response) => {
   const { usuarioAlta, fechaAlta, ...data } = req.body;
 
   data._id = id;
-
-  const existe = await Articulo.findOne({
-    _id: { $ne: id },
-    $or: [{ descripcion: data.descripcion }, { codigoBarra: data.codigoBarra }],
-  });
-
-  console.log("existe", existe);
-  if (existe) {
-    return res.status(400).json({
-      msg: `Ya existe el articulo ese codigoBarra o descripcion: ${data.codigoBarra} - ${data.descripcion}`,
-    });
-  }
-
-  const newModel = await updateArticulo(data, req.usuario._id);
+  const newModel = updateArticulo(data, req.usuario._id);
 
   res.json(newModel);
 };
@@ -167,7 +158,7 @@ const updateArticulo = async (
 ) => {
   try {
     const { usuarioAlta, fechaAlta, codigo, ...data } = articuloUpdated;
-    console.log(`Actualizando articulo: ${articuloUpdated.descripcion}`);
+    console.log(`Actualizando articulo: ${codigo}`);
     data.usuarioModif = usuario_id;
     data.fechaModif = Date.now();
     data.descripcion = data.descripcion.toUpperCase();

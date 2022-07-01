@@ -3,6 +3,7 @@ const { Schema, model } = require("mongoose");
 const SucursalSchema = Schema({
   descripcion: {
     type: String,
+    unique: true,
     required: [true, "La descripcion es obligatoria"],
   },
   direccion: {

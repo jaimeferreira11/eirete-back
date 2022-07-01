@@ -91,7 +91,7 @@ const inactivate = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
-const activate = async (req, res = response) => {
+const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
   const modelBorrado = await Sucursal.findByIdAndUpdate(
     id,
@@ -116,6 +116,6 @@ module.exports = {
   getById,
   update,
   inactivate,
-  activate,
+  changeStatus,
   aumentarNroFactura,
 };

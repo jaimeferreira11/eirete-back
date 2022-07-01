@@ -9,7 +9,7 @@ const {
   getById,
   update,
   inactivate,
-  activate,
+  changeStatus,
 } = require("../controllers/stock/sucursales");
 const { existeSucursalPorId } = require("../helpers/db-validators");
 
@@ -146,7 +146,7 @@ router.put(
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,
   ],
-  activate
+  changeStatus
 );
 // Borrar una categoria - Admin
 router.delete(
