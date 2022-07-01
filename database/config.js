@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const changelog = require("mongodb-changelog");
+const { Usuario } = require("../models");
 
 const dbConnection = async () => {
   try {
@@ -29,22 +30,22 @@ const dbConnection = async () => {
         name: "addPerfiles",
         operation: addPerfiles,
       },
+      {
+        name: "insertAdminUser",
+        operation: insertAdminUser,
+      },
+      {
+        name: "addSucursal",
+        operation: addSucursal,
+      },
       // {
       //     name: 'addFormaPagos',
       //     operation: addFormaPagos
       // },
       // {
-      //     name: 'addSucursalDeposito',
-      //     operation: addSucursalDeposito
-      // },
-      // {
       //     name: 'addUnidadMedida',
       //     operation: addUnidadMedida
       // },
-      {
-        name: "insertAdminUser",
-        operation: insertAdminUser,
-      },
       //   {
       //     name: "insertMenus",
       //     operation: insertMenus,
@@ -80,17 +81,6 @@ async function addFormaPagos(db) {
   await collection.insertOne({ descripcion: "CONSIGANACION", tipo: "CO" });
 }
 
-async function addSucursalDeposito(db) {
-  const collectionSuc = db.collection("sucursals");
-  const sucursal = await collectionSuc.insertOne({ descripcion: "MATRIZ" });
-
-  const collectionDep = db.collection("depositos");
-  await collectionDep.insertOne({
-    descripcion: "MATRIZ",
-    sucursal: sucursal.insertedId,
-  });
-}
-
 async function addUnidadMedida(db) {
   const collection = db.collection("unidadmedidas");
   await collection.insertOne({ descripcion: "UNIDAD" });
@@ -120,6 +110,36 @@ async function insertAdminUser(db) {
     username: "admin",
     nombreApellido: "Administrador",
     password: "$2a$10$Zn626WTlbVt3J2EVg0t7T.d32ZiE/zfFhiC4yiRqplgQr0YNxTQMm", // 123456
+  });
+}
+
+async function addSucursal(db) {
+  const collectionSuc = db.collection("sucursals");
+
+  const usuarioCollection = await db.collection("usuarios");
+  const usuario = await usuarioCollection.findOne({ username: "admin" });
+
+  const idSucursal = mongoose.Types.ObjectId();
+  const sucursalData = {
+    _id: idSucursal,
+    descripcion: "MATRIZ",
+    direccion: "xxx",
+    ciudad: "Asunción",
+    timbrado: "12345678",
+    establecimiento: 1,
+    puntoExpedicion: 1,
+    rangoFinal: 9999999,
+    rangoInicial: 1,
+    nroActual: 1,
+    usuarioAlta: usuario._id,
+    fechaAlta: new Date(),
+    estado: true,
+  };
+
+  await collectionSuc.insertOne(sucursalData);
+  await Usuario.findByIdAndUpdate(usuario._id, {
+    sucursal: idSucursal,
+    ...usuario,
   });
 }
 

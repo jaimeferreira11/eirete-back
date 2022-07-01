@@ -22,6 +22,7 @@
         "jsreport": "^2.11.0",
         "mongodb-changelog": "^3.0.1",
         "mongoose": "^5.11.15",
+        "mongoose-sequence": "^5.3.1",
         "mongoose-transient": "^1.0.4",
         "request": "^2.88.2",
         "uuid": "^8.3.2"

@@ -11,6 +11,10 @@ const Persona = require("./catastro/persona");
 
 //Stock
 const Sucursal = require("./stock/sucursal");
+const LineaArticulo = require("./stock/linea-articulo");
+const FamiliaArticulo = require("./stock/familia-articulo");
+const Articulo = require("./stock/articulo");
+const ArticuloSucursal = require("./stock/articulo-sucursal");
 
 const Server = require("./server");
 
@@ -24,4 +28,8 @@ module.exports = {
   Cliente,
   Persona,
   Sucursal,
+  LineaArticulo,
+  FamiliaArticulo,
+  Articulo,
+  ArticuloSucursal,
 };

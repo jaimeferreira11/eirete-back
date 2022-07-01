@@ -9,8 +9,9 @@ const {
   getById,
   update,
   inactivate,
-} = require("../controllers/seguridad/menus");
-const { existePerfilPorId } = require("../helpers/db-validators");
+  changeStatus,
+} = require("../controllers/stock/familia-articulos");
+const { existeFamiliaPorId } = require("../helpers/db-validators");
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existePerfilPorId),
+    check("id").custom(existeFamiliaPorId),
     validarCampos,
   ],
   getById
@@ -49,11 +50,25 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("descripcion", "la descripcion es obligatorio").not().isEmpty(),
-    check("id").custom(existePerfilPorId),
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeFamiliaPorId),
+    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     validarCampos,
   ],
   update
+);
+
+router.put(
+  "/change-status/:id/:status",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeFamiliaPorId),
+    check("status", "El estado es obligatorio").not().isEmpty(),
+    check("status", "El estado debe ser boolean").isBoolean(),
+    validarCampos,
+  ],
+  changeStatus
 );
 
 // Borrar una categoria - Admin
@@ -63,7 +78,7 @@ router.delete(
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existePerfilPorId),
+    check("id").custom(existeFamiliaPorId),
     validarCampos,
   ],
   inactivate

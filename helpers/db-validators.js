@@ -8,14 +8,14 @@ const {
   Articulo,
   Marca,
   LineaArticulo,
-  Familia,
+  FamiliaArticulo,
   Sucursal,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const esRoleValido = async (rol = "") => {
-  const existeRol = await Role.findOne({ rol });
+  const existeRol = await Role.findOne({ rol: rol.toUpperCase() });
   if (!existeRol) {
     throw new Error(`El rol ${rol} no está registrado en la BD`);
   }
@@ -30,7 +30,7 @@ const esPerfilValido = async (perfil = "") => {
 
 const usernameExiste = async (username = "") => {
   // Verificar si el username existe
-  const existe = await Usuario.findOne({ username });
+  const existe = await Usuario.findOne({ username: username.toUpperCase() });
   if (existe) {
     throw new Error(`El username: ${username}, ya está registrado`);
   }
@@ -79,7 +79,7 @@ const existePersonaPorId = async (id) => {
 
 const nroDocExiste = async (nroDoc = "") => {
   // Verificar si el username existe
-  const existe = await Persona.findOne({ nroDoc });
+  const existe = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
   if (existe) {
     throw new Error(`la persona con doc: ${nroDoc}, ya está registrado`);
   }
@@ -97,7 +97,7 @@ const existeClientePorId = async (id) => {
 };
 
 const existeClientePorDoc = async (nroDoc = "") => {
-  const persona = await Persona.findOne({ nroDoc });
+  const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
   if (persona) {
     // Verificar si la persona existe como cliente
     const existe = await Cliente.findOne({
@@ -121,7 +121,7 @@ const existeProveedorPorId = async (id) => {
 };
 
 const existeProveedorPorNrodoc = async (nroDoc = "") => {
-  const persona = await Persona.findOne({ nroDoc });
+  const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
   if (persona) {
     // Verificar si la persona ya existe como aseguradora
     const existe = await Proveedor.findOne({
@@ -154,11 +154,28 @@ const existeArticuloPorId = async (id) => {
   }
 };
 
-const codArticuloExiste = async (codigo = "") => {
+const codArticuloExiste = async (codigoBarra = "") => {
   // Verificar si el username existe
-  const existe = await Articulo.findOne({ codigo });
+  const existe = await Articulo.findOne({
+    codigoBarra: codigoBarra.toUpperCase(),
+  });
   if (existe) {
-    throw new Error(`El articulo con codigo: ${codigo}, ya está registrado`);
+    throw new Error(
+      `El articulo con codigo de barra: ${codigoBarra}, ya está registrado`
+    );
+  }
+};
+
+const existeArticuloPorDescripcion = async (descripcion = "") => {
+  // Verificar si el correo existe
+  const existe = await Articulo.findOne({
+    descripcion: descripcion.toUpperCase().trim(),
+  });
+
+  if (existe) {
+    throw new Error(
+      `El articulo con descripcion: ${descripcion}, ya está registrado`
+    );
   }
 };
 
@@ -189,7 +206,7 @@ const existeLineaArticuloPorId = async (id) => {
  */
 const existeFamiliaPorId = async (id) => {
   // Verificar si el correo existe
-  const existe = await Familia.findById(id);
+  const existe = await FamiliaArticulo.findById(id);
   if (!existe) {
     throw new Error(`El id no existe ${id}`);
   }
@@ -261,6 +278,7 @@ module.exports = {
   crearClienteSiNoExiste,
   existeArticuloPorId,
   codArticuloExiste,
+  existeArticuloPorDescripcion,
   existeMarcaPorId,
   existeLineaArticuloPorId,
   existeFamiliaPorId,

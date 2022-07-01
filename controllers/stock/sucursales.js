@@ -5,7 +5,6 @@ const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
   const query = { estado };
 
-  console.log(paginado);
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       Sucursal.countDocuments(query),
@@ -92,11 +91,11 @@ const inactivate = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
-const activate = async (req, res = response) => {
-  const { id } = req.params;
+const changeStatus = async (req, res = response) => {
+  const { id, status } = req.params;
   const modelBorrado = await Sucursal.findByIdAndUpdate(
     id,
-    { estado: true },
+    { estado: status },
     { new: true }
   );
 
@@ -108,7 +107,7 @@ const aumentarNroFactura = async (id) => {
 
   sucursalDB.nroActual = sucursalDB.nroActual + 1;
 
-  await Presupuesto.findByIdAndUpdate(id, sucursalDB);
+  await Sucursal.findByIdAndUpdate(id, sucursalDB);
 };
 
 module.exports = {
@@ -117,6 +116,6 @@ module.exports = {
   getById,
   update,
   inactivate,
-  activate,
+  changeStatus,
   aumentarNroFactura,
 };

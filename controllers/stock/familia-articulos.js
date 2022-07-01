@@ -1,5 +1,5 @@
 const { response } = require("express");
-const { LineaArticulo } = require("../../models");
+const { FamiliaArticulo } = require("../../models");
 
 const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
@@ -7,11 +7,8 @@ const getAll = async (req, res = response) => {
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
-      LineaArticulo.countDocuments(query),
-      LineaArticulo.find(query)
-        .populate("familia", "descripcion")
-        .skip(Number(desde))
-        .limit(Number(limite)),
+      FamiliaArticulo.countDocuments(query),
+      FamiliaArticulo.find(query).skip(Number(desde)).limit(Number(limite)),
     ]);
 
     res.json({
@@ -19,20 +16,14 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query).populate(
-      "familia",
-      "descripcion"
-    );
+    const data = await FamiliaArticulo.find(query);
     res.json(data);
   }
 };
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await LineaArticulo.findById(id).populate(
-    "familia",
-    "descripcion"
-  );
+  const modelDB = await FamiliaArticulo.findById(id);
 
   res.json(modelDB);
 };
@@ -40,16 +31,18 @@ const getById = async (req, res = response) => {
 const add = async (req, res = response) => {
   const descripcion = req.body.descripcion.toUpperCase();
 
-  const modelDB = await LineaArticulo.findOne({ descripcion });
+  const modelDB = await FamiliaArticulo.findOne({ descripcion });
 
   if (modelDB) {
     return res.status(400).json({
-      msg: `La LineaArticulo ${modelDB.descripcion}, ya existe`,
+      msg: `La Familia ${modelDB.descripcion}, ya existe`,
     });
   }
-  req.body.descripcion = descripcion;
+  const data = {
+    descripcion,
+  };
 
-  const newModel = new LineaArticulo(req.body);
+  const newModel = new FamiliaArticulo(data);
 
   // Guardar DB
   await newModel.save();
@@ -62,28 +55,29 @@ const update = async (req, res = response) => {
   const { estado, ...data } = req.body;
 
   data.descripcion = data.descripcion.toUpperCase();
+  //  data.usuario = req.usuario._id;
 
-  const newModel = await LineaArticulo.findByIdAndUpdate(id, data, {
+  const newModel = await FamiliaArticulo.findByIdAndUpdate(id, data, {
     new: true,
   });
 
   res.json(newModel);
 };
 
-const changeStatus = async (req, res = response) => {
-  const { id, status } = req.params;
-  const modelBorrado = await LineaArticulo.findByIdAndUpdate(
+const inactivate = async (req, res = response) => {
+  const { id } = req.params;
+  const modelBorrado = await FamiliaArticulo.findByIdAndUpdate(
     id,
-    { estado: status },
+    { estado: false },
     { new: true }
   );
 
   res.json(modelBorrado);
 };
 
-const inactivate = async (req, res = response) => {
+const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
-  const modelBorrado = await LineaArticulo.findByIdAndUpdate(
+  const modelBorrado = await FamiliaArticulo.findByIdAndUpdate(
     id,
     { estado: status },
     { new: true }
@@ -97,6 +91,6 @@ module.exports = {
   getAll,
   getById,
   update,
-  changeStatus,
   inactivate,
+  changeStatus,
 };

@@ -9,14 +9,14 @@ const {
   getById,
   update,
   inactivate,
-} = require("../controllers/seguridad/menus");
-const { existePerfilPorId } = require("../helpers/db-validators");
+  changeStatus,
+} = require("../controllers/stock/linea-articulos");
+const {
+  existeLineaArticuloPorId,
+  existeFamiliaPorId,
+} = require("../helpers/db-validators");
 
 const router = Router();
-
-/**
- * {{url}}/api/categorias
- */
 
 //  Obtener todas las categorias - publico
 router.get("/", [validarJWT, validarCampos], getAll);
@@ -27,7 +27,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existePerfilPorId),
+    check("id").custom(existeLineaArticuloPorId),
     validarCampos,
   ],
   getById
@@ -39,6 +39,8 @@ router.post(
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
+    check("familia._id", "No es un id de Mongo").isMongoId(),
+    check("familia._id").custom(existeFamiliaPorId),
     validarCampos,
   ],
   add
@@ -49,11 +51,27 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("descripcion", "la descripcion es obligatorio").not().isEmpty(),
-    check("id").custom(existePerfilPorId),
+    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id").custom(existeLineaArticuloPorId),
+    check("familia._id", "No es un id de Mongo").isMongoId(),
+    check("familia._id").custom(existeFamiliaPorId),
     validarCampos,
   ],
   update
+);
+
+router.put(
+  "/change-status/:id/:status",
+  [
+    validarJWT,
+    esAdminRole,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeLineaArticuloPorId),
+    check("status", "El estado es obligatorio").not().isEmpty(),
+    check("status", "El estado debe ser boolean").isBoolean(),
+    validarCampos,
+  ],
+  changeStatus
 );
 
 // Borrar una categoria - Admin
@@ -63,7 +81,7 @@ router.delete(
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existePerfilPorId),
+    check("id").custom(existeLineaArticuloPorId),
     validarCampos,
   ],
   inactivate

@@ -9,7 +9,7 @@ const {
   getById,
   update,
   inactivate,
-  activate,
+  changeStatus,
 } = require("../controllers/stock/sucursales");
 const { existeSucursalPorId } = require("../helpers/db-validators");
 
@@ -20,12 +20,13 @@ const router = Router();
  */
 
 //  Obtener todas las categorias - publico
-router.get("/", getAll);
+router.get("/", [validarJWT, validarCampos], getAll);
 
 // Obtener una categoria por id - publico
 router.get(
   "/:id",
   [
+    validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
     check("id").custom(existeSucursalPorId),
     validarCampos,
@@ -135,17 +136,18 @@ router.put(
 );
 
 router.put(
-  "/habilitar/:id",
+  "/change-status/:id/:status",
   [
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
     check("id").custom(existeSucursalPorId),
+    check("status", "El estado es obligatorio").not().isEmpty(),
+    check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,
   ],
-  activate
+  changeStatus
 );
-
 // Borrar una categoria - Admin
 router.delete(
   "/:id",
