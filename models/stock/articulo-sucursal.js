@@ -1,15 +1,11 @@
 const { Schema, model } = require("mongoose");
 
-const ArticuloSucursalSchema = Schema({
+const articuloStock = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
     ref: "Articulo",
+    unique: true,
     required: [true, "El articulo es obligatorio"],
-  },
-  sucursal: {
-    type: Schema.Types.ObjectId,
-    ref: "Sucursal",
-    required: [true, "La sucursal es obligatoria"],
   },
   stock: {
     type: Number,
@@ -41,6 +37,20 @@ const ArticuloSucursalSchema = Schema({
   usuarioModif: {
     type: Schema.Types.ObjectId,
     ref: "Usuario",
+  },
+});
+
+const ArticuloSucursalSchema = new Schema({
+  sucursal: {
+    type: Schema.Types.ObjectId,
+    ref: "Sucursal",
+    unique: true,
+    required: [true, "La sucursal es obligatoria"],
+  },
+  articulos: {
+    type: [articuloStock],
+    default: [],
+    required: [true, "Los articulos son obligatorios"],
   },
 });
 
