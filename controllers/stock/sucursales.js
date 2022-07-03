@@ -1,5 +1,9 @@
 const { response } = require("express");
-const { Sucursal } = require("../../models");
+const ObjectId = require("mongoose").Types.ObjectId;
+
+const { Sucursal, Articulo, ArticuloSucursal } = require("../../models");
+const sucursal = require("../../models/stock/sucursal");
+const { createArticuloSucursal } = require("./articulos-sucursal");
 
 const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
@@ -11,6 +15,10 @@ const getAll = async (req, res = response) => {
       Sucursal.find(query)
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
+        .populate(
+          "articulos",
+          "-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif"
+        )
         .skip(Number(desde))
         .limit(Number(limite)),
     ]);
@@ -22,7 +30,11 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Sucursal.find(query)
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .populate(
+        "articulos",
+        "-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif"
+      );
     res.json(data);
   }
 };
@@ -47,16 +59,22 @@ const add = async (req, res = response) => {
         });
       }
     }
+
     req.body.descripcion = req.body.descripcion.toUpperCase();
+
     const sucursalData = {
-      ...req.body,
       usuarioAlta: req.usuario._id,
+      ...req.body,
     };
 
     const newModel = new Sucursal(sucursalData);
 
     // Guardar DB
     await newModel.save();
+
+    //
+    // cuando se crea una sucursal, se crea articulo-sucursal con los articulos existentes
+    await createArticuloSucursal(newModel._id, req.usuario._id);
 
     res.json(newModel);
   } catch (error) {
@@ -69,10 +87,12 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, usuarioAlta, fechaAlta, nroActual, ...data } = req.body;
+  const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
+    req.body;
 
   data.descripcion = data.descripcion.toUpperCase();
   data.usuarioModif = req.usuario._id;
+
   data.fechaModif = Date.now();
 
   const newModel = await Sucursal.findByIdAndUpdate(id, data, { new: true });

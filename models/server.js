@@ -22,6 +22,7 @@ class Server {
       lineaArticulos: "/api/linea-articulos",
       familiaArticulos: "/api/familia-articulos",
       articulos: "/api/articulos",
+      articulosSucursal: "/api/articulos-sucursal",
     };
 
     // Conectar a base de datos
@@ -77,6 +78,10 @@ class Server {
       require("../routes/familia-articulos")
     );
     this.app.use(this.paths.articulos, require("../routes/articulos"));
+    this.app.use(
+      this.paths.articulosSucursal,
+      require("../routes/articulos-sucursal")
+    );
   }
 
   listen() {

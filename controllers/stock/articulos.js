@@ -1,5 +1,6 @@
 const { response } = require("express");
-const { Articulo } = require("../../models");
+const { Articulo, Sucursal } = require("../../models");
+const { addArticuloToSucursales } = require("./articulos-sucursal");
 
 const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
@@ -96,6 +97,14 @@ const add = async (req, res = response) => {
     req.body._id = null;
 
     const newModel = await addArticulo(new Articulo(req.body), req.usuario._id);
+
+    // Guardar el nuevo articulo en todas las sucursales
+    // FIXME: No devuelve el id, por eso se hace nuevamente un find
+    await addArticuloToSucursales(
+      await Articulo.findOne({ descripcion: newModel.descripcion }),
+      req.usuario._id
+    );
+
     res.json(newModel);
   } catch (error) {
     console.log(error);
