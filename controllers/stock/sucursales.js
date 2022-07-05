@@ -3,7 +3,7 @@ const ObjectId = require("mongoose").Types.ObjectId;
 
 const { Sucursal, Articulo, ArticuloSucursal } = require("../../models");
 const sucursal = require("../../models/stock/sucursal");
-const { createArticuloSucursal } = require("./articulos-sucursal");
+const { createArticuloSucursal } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
