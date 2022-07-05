@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { Articulo, Sucursal } = require("../../models");
-const { addArticuloToSucursales } = require("./articulos-sucursal");
+const { addArticuloToSucursales } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
   const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
