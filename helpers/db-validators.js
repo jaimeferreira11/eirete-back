@@ -150,7 +150,7 @@ const existeArticuloPorId = async (id) => {
   // Verificar si el correo existe
   const existe = await Articulo.findById(id);
   if (!existe) {
-    throw new Error(`El id no existe ${id}`);
+    throw new Error(`El id articulo no existe ${id}`);
   }
 };
 
