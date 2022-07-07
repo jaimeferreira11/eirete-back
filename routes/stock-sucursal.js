@@ -8,8 +8,12 @@ const {
   getFamiliasBySucursal,
   getLineasBySucursal,
   getArticulosBySucursal,
+  updateArticuloSucursal,
 } = require("../controllers/stock/stock-sucursal");
-const { existeSucursalPorId } = require("../helpers/db-validators");
+const {
+  existeSucursalPorId,
+  existeArticuloPorId,
+} = require("../helpers/db-validators");
 
 const router = Router();
 
@@ -59,6 +63,21 @@ router.get(
     validarCampos,
   ],
   getArticulosBySucursal
+);
+
+router.put(
+  "/:id",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeSucursalPorId),
+    check("articulo", "No es un id de Mongo válido").isMongoId(),
+    check("articulo").custom(existeArticuloPorId),
+    check("stock", "El stock es obligatorio").not().isEmpty().isNumeric(),
+    check("stock", "El stock debe de al menos 1 digitos").isLength({ min: 1 }),
+    validarCampos,
+  ],
+  updateArticuloSucursal
 );
 
 module.exports = router;
