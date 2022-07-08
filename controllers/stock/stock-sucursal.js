@@ -236,7 +236,7 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
         throw new Error(`Ya existe stock en la sucursal ${sucursal_id}`);
       }
     }
-
+    s;
     let articulosStock = [];
     const articulos = await Articulo.find();
 
@@ -253,7 +253,6 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
       articulos: articulosStock,
     };
 
-    console.log("articuloSucursal", articuloSucursal);
     const newModel = new ArticuloSucursal(articuloSucursal);
     await newModel.save();
   } catch (error) {
