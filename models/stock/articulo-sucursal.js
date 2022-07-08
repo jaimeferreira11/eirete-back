@@ -1,4 +1,6 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require('mongoose-audit-trail');
+
 
 const articuloStock = new Schema({
   articulo: {
@@ -52,5 +54,8 @@ const ArticuloSucursalSchema = new Schema({
     required: [true, "Los articulos son obligatorios"],
   },
 });
+
+ArticuloSucursalSchema.plugin(diffHistory.plugin);
+
 
 module.exports = model("ArticuloSucursal", ArticuloSucursalSchema);

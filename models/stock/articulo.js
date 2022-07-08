@@ -1,4 +1,8 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require('mongoose-audit-trail');
+
+
+
 const ArticuloSchema = Schema({
   descripcion: {
     type: String,
@@ -63,5 +67,8 @@ const ArticuloSchema = Schema({
     ref: "Usuario",
   },
 });
+
+
+ArticuloSchema.plugin(diffHistory.plugin);
 
 module.exports = model("Articulo", ArticuloSchema);
