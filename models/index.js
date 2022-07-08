@@ -16,6 +16,8 @@ const FamiliaArticulo = require("./stock/familia-articulo");
 const Articulo = require("./stock/articulo");
 const ArticuloSucursal = require("./stock/articulo-sucursal");
 
+// transaccion
+const {Pedido, PedidoSchema} = require("./transaccion/pedido");
 const Server = require("./server");
 
 module.exports = {
@@ -32,4 +34,6 @@ module.exports = {
   FamiliaArticulo,
   Articulo,
   ArticuloSucursal,
+  Pedido, 
+  PedidoSchema
 };

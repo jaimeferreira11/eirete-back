@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 const diffHistory = require('mongoose-audit-trail');
 
 
-const SucursalSchema = Schema({
+const SucursalSchema = new Schema({
   descripcion: {
     type: String,
     unique: true,

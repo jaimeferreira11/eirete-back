@@ -51,6 +51,10 @@ const UsuarioSchema = Schema({
     ref: "Sucursal",
     required: true,
   },
+  caja: {
+    type: Schema.Types.ObjectId,
+    ref: "Caja",
+  },
 });
 
 // evitar que devuelva la contraseña

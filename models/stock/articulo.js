@@ -3,7 +3,7 @@ const diffHistory = require('mongoose-audit-trail');
 
 
 
-const ArticuloSchema = Schema({
+const ArticuloSchema = new Schema({
   descripcion: {
     type: String,
     required: [true, "La descripcion es obligatoria"],
