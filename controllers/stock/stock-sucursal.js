@@ -253,7 +253,6 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
       articulos: articulosStock,
     };
 
-    console.log("articuloSucursal", articuloSucursal);
     const newModel = new ArticuloSucursal(articuloSucursal);
     await newModel.save();
   } catch (error) {

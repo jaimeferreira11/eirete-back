@@ -67,6 +67,13 @@ const add = async (req, res = response) => {
       });
     }
 
+    // punto de expedicion
+    if (await Sucursal.findOne({ establecimiento: req.body.establecimiento })) {
+      return res.status(400).json({
+        msg: `El establecimiento ${req.body.establecimiento}, ya está registrado`,
+      });
+    }
+
     const sucursalData = {
       usuarioAlta: req.usuario._id,
       ...req.body,
@@ -94,6 +101,16 @@ const update = async (req, res = response) => {
   const { id } = req.params;
   const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
     req.body;
+
+  // punto de expedicion
+  const model = await Sucursal.findOne({
+    establecimiento: req.body.establecimiento,
+  });
+  if (model && model._id != id) {
+    return res.status(400).json({
+      msg: `El establecimiento ${req.body.establecimiento}, ya está registrado en la sucursal ${model.descripcion}`,
+    });
+  }
 
   data.descripcion = data.descripcion.toUpperCase();
   data.usuarioModif = req.usuario._id;
