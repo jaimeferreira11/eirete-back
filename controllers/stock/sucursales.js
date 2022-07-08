@@ -61,6 +61,11 @@ const add = async (req, res = response) => {
     }
 
     req.body.descripcion = req.body.descripcion.toUpperCase();
+    if (await Sucursal.findOne({ descripcion: req.body.descripcion })) {
+      return res.status(400).json({
+        msg: `La sucursal  ${req.body.descripcion}, ya existe`,
+      });
+    }
 
     const sucursalData = {
       usuarioAlta: req.usuario._id,

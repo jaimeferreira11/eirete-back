@@ -4,7 +4,6 @@ const articuloStock = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
     ref: "Articulo",
-    unique: true,
     required: [true, "El articulo es obligatorio"],
   },
   stock: {
