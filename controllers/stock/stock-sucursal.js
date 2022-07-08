@@ -1,7 +1,7 @@
 const { response } = require("express");
 const { ObjectId } = require("mongoose").Types;
 
-const { ArticuloSucursal, LineaArticulo, Articulo } = require("../../models");
+const { ArticuloSucursal, Sucursal, Articulo } = require("../../models");
 
 const getBySucursal = async (req, res = response) => {
   const { id } = req.params;
@@ -225,10 +225,48 @@ const updateArticuloSucursal = async (req, res = response) => {
   }
 };
 
+const createArticuloSucursal = async (sucursal_id, usuario_id) => {
+  try {
+    if (sucursal_id) {
+      const modelDB = await Sucursal.findById(sucursal_id);
+      if (!modelDB) {
+        throw new Error(`La sucursal ${sucursal_id} no existe`);
+      }
+      if (await ArticuloSucursal.findOne({ sucursal: sucursal_id })) {
+        throw new Error(`Ya existe stock en la sucursal ${sucursal_id}`);
+      }
+    }
+
+    let articulosStock = [];
+    const articulos = await Articulo.find();
+
+    articulos.map((a) => {
+      const as = {
+        articulo: a._id,
+        usuarioAlta: usuario_id,
+      };
+      articulosStock.push(as);
+    });
+
+    const articuloSucursal = {
+      sucursal: sucursal_id,
+      articulos: articulosStock,
+    };
+
+    console.log("articuloSucursal", articuloSucursal);
+    const newModel = new ArticuloSucursal(articuloSucursal);
+    await newModel.save();
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 module.exports = {
   getBySucursal,
   getFamiliasBySucursal,
   getLineasBySucursal,
   getArticulosBySucursal,
   updateArticuloSucursal,
+  createArticuloSucursal,
 };
