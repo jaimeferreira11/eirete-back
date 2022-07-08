@@ -1,4 +1,6 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require('mongoose-audit-trail');
+
 
 const UsuarioSchema = Schema({
   username: {
@@ -57,5 +59,8 @@ UsuarioSchema.methods.toJSON = function () {
   //  usuario.uid = _id;
   return usuario;
 };
+
+UsuarioSchema.plugin(diffHistory.plugin);
+
 
 module.exports = model("Usuario", UsuarioSchema);

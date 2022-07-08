@@ -1,4 +1,6 @@
 const { Schema, model } = require('mongoose');
+const diffHistory = require('mongoose-audit-trail');
+
 
 const PersonaSchema = Schema({
     nroDoc: {
@@ -70,6 +72,7 @@ const PersonaSchema = Schema({
 
 });
 
+PersonaSchema.plugin(diffHistory.plugin);
 
 
 module.exports = model('Persona', PersonaSchema);
