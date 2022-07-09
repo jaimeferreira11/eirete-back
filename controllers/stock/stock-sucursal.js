@@ -261,6 +261,23 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
   }
 };
 
+const addArticuloToSucursales = async (articulo, usuario_id) => {
+  try {
+    const articulosSucursal = await ArticuloSucursal.find();
+
+    articulosSucursal.map(async (as = ArticuloSucursal) => {
+      as.articulos.push({
+        articulo: articulo._id,
+        usuarioAlta: usuario_id,
+      });
+      await as.save();
+    });
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+
 module.exports = {
   getBySucursal,
   getFamiliasBySucursal,
@@ -268,4 +285,5 @@ module.exports = {
   getArticulosBySucursal,
   updateArticuloSucursal,
   createArticuloSucursal,
+  addArticuloToSucursales,
 };
