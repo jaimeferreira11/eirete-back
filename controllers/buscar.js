@@ -58,7 +58,7 @@ const buscarClientes = async (termino = "", res = response) => {
 
   console.log("Buscando el cliente con el termino", termino);
 
-  const regex = new RegExp(termino.toUpperCase(), "i");
+  const regex = new RegExp(termino, "i");
 
   const results = await Cliente.find({ estado: true })
     .populate("persona", "-__v")
@@ -94,7 +94,7 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
     });
   }
 
-  const regex = new RegExp(termino.toUpperCase(), "i");
+  const regex = new RegExp(termino, "i");
 
   let results = [];
   switch (tipo) {
@@ -249,7 +249,7 @@ const buscarPerfiles = async (termino = "", res = response) => {
     });
   }
 
-  const regex = new RegExp(termino, "i").toUpperCase();
+  const regex = new RegExp(termino, "i");
   const lista = await Perfil.find({
     descripcion: regex,
   });
@@ -272,7 +272,7 @@ const buscarLineaArticulos = async (termino = "", res = response) => {
     });
   }
 
-  const regex = new RegExp(termino, "i").toUpperCase();
+  const regex = new RegExp(termino, "i");
   const lista = await LineaArticulo.find({
     descripcion: regex,
     estado: true,
@@ -294,7 +294,7 @@ const buscarFamiliaArticulos = async (termino = "", res = response) => {
     });
   }
 
-  const regex = new RegExp(termino, "i").toUpperCase();
+  const regex = new RegExp(termino, "i");
   const lista = await FamiliaArticulo.find({
     descripcion: regex,
     estado: true,
@@ -318,11 +318,7 @@ const buscarSucursales = async (termino = "", res = response) => {
 
   const regex = new RegExp(termino, "i");
   const lista = await Sucursal.find({
-    $or: [
-      { descripcion: regex.toUpperCase() },
-      { ciudad: regex },
-      { direccion: regex },
-    ],
+    $or: [{ descripcion: regex }, { ciudad: regex }, { direccion: regex }],
     $and: [{ estado: true }],
   });
 
@@ -347,7 +343,7 @@ const buscarCajas = async (termino = "", res = response) => {
 
   const regex = new RegExp(termino, "i");
   const lista = await Caja.find({
-    $or: [{ descripcion: regex.toUpperCase() }, { nro: regex }],
+    $or: [{ descripcion: regex }, { nro: regex }],
     $and: [{ estado: true }],
   })
     .populate("usuarioAlta", "username")
@@ -374,7 +370,7 @@ const buscarCiudades = async (termino = "", res = response) => {
 
   const regex = new RegExp(termino, "i");
   const lista = await Ciudad.find({
-    $or: [{ descripcion: regex.toUpperCase() }],
+    $or: [{ descripcion: regex }],
     $and: [{ estado: true }],
   })
     .populate("usuarioAlta", "username")
