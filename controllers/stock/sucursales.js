@@ -1,23 +1,33 @@
-const { response } = require("express");
-const ObjectId = require("mongoose").Types.ObjectId;
+const { response } = require('express');
+const ObjectId = require('mongoose').Types.ObjectId;
 
-const { Sucursal, Articulo, ArticuloSucursal } = require("../../models");
-const sucursal = require("../../models/stock/sucursal");
-const { createArticuloSucursal } = require("./stock-sucursal");
+const { Sucursal, Articulo, ArticuloSucursal } = require('../../models');
+const sucursal = require('../../models/stock/sucursal');
+const { createArticuloSucursal } = require('./stock-sucursal');
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
-  const query = { estado };
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    estado = true,
+    search,
+  } = req.query;
 
-  if (paginado === "true") {
+  let query = { estado };
+
+  if (search)
+    query.descripcion = { $regex: '.*' + search + '.*', $options: 'i' };
+
+  if (paginado === 'true') {
     const [total, data] = await Promise.all([
       Sucursal.countDocuments(query),
       Sucursal.find(query)
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .populate(
-          "articulos",
-          "-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif"
+          'articulos',
+          '-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif'
         )
         .skip(Number(desde))
         .limit(Number(limite)),
@@ -29,11 +39,11 @@ const getAll = async (req, res = response) => {
     });
   } else {
     const data = await Sucursal.find(query)
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .populate(
-        "articulos",
-        "-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif"
+        'articulos',
+        '-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif'
       );
     res.json(data);
   }
@@ -42,8 +52,8 @@ const getAll = async (req, res = response) => {
 const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Sucursal.findById(id)
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   res.json(modelDB);
 };
