@@ -1,9 +1,9 @@
-const { response } = require('express');
-const ObjectId = require('mongoose').Types.ObjectId;
+const { response } = require("express");
+const ObjectId = require("mongoose").Types.ObjectId;
 
-const { Sucursal, Articulo, ArticuloSucursal } = require('../../models');
-const sucursal = require('../../models/stock/sucursal');
-const { createArticuloSucursal } = require('./stock-sucursal');
+const { Sucursal, Articulo, ArticuloSucursal } = require("../../models");
+const sucursal = require("../../models/stock/sucursal");
+const { createArticuloSucursal } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
   const {
@@ -17,18 +17,14 @@ const getAll = async (req, res = response) => {
   let query = { estado };
 
   if (search)
-    query.descripcion = { $regex: '.*' + search + '.*', $options: 'i' };
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
-  if (paginado === 'true') {
+  if (paginado === "true") {
     const [total, data] = await Promise.all([
       Sucursal.countDocuments(query),
       Sucursal.find(query)
-        .populate('usuarioAlta', 'username')
-        .populate('usuarioModif', 'username')
-        .populate(
-          'articulos',
-          '-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif'
-        )
+        .populate("usuarioAlta", "username")
+        .populate("usuarioModif", "username")
         .skip(Number(desde))
         .limit(Number(limite)),
     ]);
@@ -39,12 +35,8 @@ const getAll = async (req, res = response) => {
     });
   } else {
     const data = await Sucursal.find(query)
-      .populate('usuarioAlta', 'username')
-      .populate('usuarioModif', 'username')
-      .populate(
-        'articulos',
-        '-__v -fechaAlta -usuarioAlta -fechaModif -usuarioModif'
-      );
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username");
     res.json(data);
   }
 };
@@ -52,8 +44,8 @@ const getAll = async (req, res = response) => {
 const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Sucursal.findById(id)
-    .populate('usuarioAlta', 'username')
-    .populate('usuarioModif', 'username');
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
 
   res.json(modelDB);
 };
