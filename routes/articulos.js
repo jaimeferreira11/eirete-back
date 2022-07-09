@@ -14,7 +14,6 @@ const {
 const {
   existeArticuloPorId,
   codArticuloExiste,
-  existeMarcaPorId,
   existeArticuloPorDescripcion,
   existeLineaArticuloPorId,
 } = require("../helpers/db-validators");

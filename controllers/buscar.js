@@ -4,12 +4,13 @@ const { ObjectId } = require("mongoose").Types;
 const {
   Usuario,
   Cliente,
-  Producto,
+  Caja,
   Persona,
   Articulo,
   LineaArticulo,
   FamiliaArticulo,
   Sucursal,
+  Ciudad,
 } = require("../models");
 
 const coleccionesPermitidas = [
@@ -20,6 +21,8 @@ const coleccionesPermitidas = [
   "sucursales",
   "linea-articulos",
   "familia-articulos",
+  "cajas",
+  "ciudades",
 ];
 
 const buscarUsuarios = async (termino = "", res = response) => {
@@ -106,7 +109,6 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
             select: "-__v",
           },
         })
-        .populate("marca", "descripcion")
         .populate("tipoVehiculo", "descripcion")
         .populate({
           path: "aseguradora",
@@ -124,50 +126,7 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
         .populate("usuarioModif", "username");
 
       break;
-    case "marca":
-      this.results = await Vehiculo.find()
-        .populate({
-          path: "cliente",
-          select: "-__v",
-          populate: {
-            path: "persona",
-            select: "-__v",
-          },
-        })
-        .populate("marca", "descripcion")
-        .populate("tipoVehiculo", "descripcion")
-        .populate("usuarioAlta", "username")
-        .populate({
-          path: "aseguradora",
-          select: "-__v",
-          populate: {
-            path: "cliente",
-            select: "-__v",
-            populate: {
-              path: "persona",
-              select: "-__v",
-            },
-          },
-        })
-        .populate("usuarioModif", "username")
-        .then(async (customers) => {
-          let aux = [];
 
-          await Promise.all(
-            customers.map(async (d) => {
-              const persona = await MarcaVehiculo.findOne({
-                _id: d.marca,
-                descripcion: regex,
-              });
-              if (persona) aux.push(d);
-            })
-          );
-
-          console.log(aux.length);
-          return aux;
-        });
-
-      break;
     case "cliente":
       this.results = await Vehiculo.find()
         .populate({
@@ -178,7 +137,6 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
             select: "-__v",
           },
         })
-        .populate("marca", "descripcion")
         .populate("tipoVehiculo", "descripcion")
         .populate({
           path: "aseguradora",
@@ -373,6 +331,60 @@ const buscarSucursales = async (termino = "", res = response) => {
   });
 };
 
+const buscarCajas = async (termino = "", res = response) => {
+  const esMongoID = ObjectId.isValid(termino);
+
+  if (esMongoID) {
+    const data = await Caja.findById(termino)
+      .populate("usuarioAlta", "username")
+      .populate("sucursal", "descripcion")
+      .populate("usuarioModif", "username");
+
+    return res.json({
+      data: data ? [data] : [],
+    });
+  }
+
+  const regex = new RegExp(termino, "i");
+  const lista = await Caja.find({
+    $or: [{ descripcion: regex.toUpperCase() }, { nro: regex }],
+    $and: [{ estado: true }],
+  })
+    .populate("usuarioAlta", "username")
+    .populate("sucursal", "descripcion")
+    .populate("usuarioModif", "username");
+
+  res.json({
+    data: lista ? [lista] : [],
+  });
+};
+
+const buscarCiudades = async (termino = "", res = response) => {
+  const esMongoID = ObjectId.isValid(termino);
+
+  if (esMongoID) {
+    const data = await Ciudad.findById(termino)
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username");
+
+    return res.json({
+      data: data ? [data] : [],
+    });
+  }
+
+  const regex = new RegExp(termino, "i");
+  const lista = await Ciudad.find({
+    $or: [{ descripcion: regex.toUpperCase() }],
+    $and: [{ estado: true }],
+  })
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+
+  res.json({
+    data: lista ? [lista] : [],
+  });
+};
+
 const buscar = (req, res = response) => {
   const { coleccion, termino, tipo } = req.params;
 
@@ -403,6 +415,12 @@ const buscar = (req, res = response) => {
       break;
     case "perfiles":
       buscarPerfiles(termino, res);
+      break;
+    case "cajas":
+      buscarCajas(termino, res);
+      break;
+    case "ciudades":
+      buscarCiudades(termino, res);
       break;
 
     default:

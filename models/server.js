@@ -23,6 +23,8 @@ class Server {
       familiaArticulos: "/api/familia-articulos",
       articulos: "/api/articulos",
       articulosSucursal: "/api/stock",
+      cajas: "/api/cajas",
+      ciudades: "/api/ciudades",
     };
 
     // Conectar a base de datos
@@ -82,6 +84,8 @@ class Server {
       this.paths.articulosSucursal,
       require("../routes/stock-sucursal")
     );
+    this.app.use(this.paths.cajas, require("../routes/cajas"));
+    this.app.use(this.paths.ciudades, require("../routes/ciudades"));
   }
 
   listen() {

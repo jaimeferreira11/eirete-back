@@ -6,10 +6,11 @@ const {
   Cliente,
   Proveedor,
   Articulo,
-  Marca,
   LineaArticulo,
   FamiliaArticulo,
   Sucursal,
+  Caja,
+  Ciudad,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -180,17 +181,6 @@ const existeArticuloPorDescripcion = async (descripcion = "") => {
 };
 
 /**
- * Marca
- */
-const existeMarcaPorId = async (id) => {
-  // Verificar si el correo existe
-  const existe = await Marca.findById(id);
-  if (!existe) {
-    throw new Error(`El id no existe ${id}`);
-  }
-};
-
-/**
  * Linea articulo
  */
 const existeLineaArticuloPorId = async (id) => {
@@ -207,6 +197,27 @@ const existeLineaArticuloPorId = async (id) => {
 const existeFamiliaPorId = async (id) => {
   // Verificar si el correo existe
   const existe = await FamiliaArticulo.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Cajas
+ */
+const existeCajaPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Caja.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+/**
+ * Ciudades
+ */
+const existeCiudadPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Ciudad.findById(id);
   if (!existe) {
     throw new Error(`El id no existe ${id}`);
   }
@@ -279,7 +290,8 @@ module.exports = {
   existeArticuloPorId,
   codArticuloExiste,
   existeArticuloPorDescripcion,
-  existeMarcaPorId,
   existeLineaArticuloPorId,
   existeFamiliaPorId,
+  existeCajaPorId,
+  existeCiudadPorId,
 };

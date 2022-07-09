@@ -1,9 +1,16 @@
 const { Schema, model } = require("mongoose");
-const diffHistory = require('mongoose-audit-trail');
+const diffHistory = require("mongoose-audit-trail");
 
+const ArticuloCounterSchema = Schema({
+  seq: { type: Number, default: 0 },
+});
 
+const articuloCounterColleccion = model(
+  "articuloCounter",
+  ArticuloCounterSchema
+);
 
-const ArticuloSchema = Schema({
+const ArticuloSchema = new Schema({
   descripcion: {
     type: String,
     required: [true, "La descripcion es obligatoria"],
@@ -11,6 +18,11 @@ const ArticuloSchema = Schema({
   },
   codigoBarra: {
     type: String,
+  },
+  codigo: {
+    type: Number,
+    default: 1,
+    unique: true,
   },
   unidadMedida: {
     type: String,
@@ -68,7 +80,21 @@ const ArticuloSchema = Schema({
   },
 });
 
-
 ArticuloSchema.plugin(diffHistory.plugin);
+
+ArticuloSchema.pre("save", async function (next) {
+  let doc = this;
+
+  let counterDoc = await articuloCounterColleccion.findOne();
+  if (!counterDoc) {
+    counterDoc = new articuloCounterColleccion({ seq: 1 });
+  } else {
+    counterDoc.seq++;
+  }
+  doc.codigo = counterDoc.seq;
+  counterDoc.save();
+
+  next();
+});
 
 module.exports = model("Articulo", ArticuloSchema);
