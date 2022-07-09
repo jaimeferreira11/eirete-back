@@ -1,5 +1,11 @@
 const { Schema, model } = require("mongoose");
-const diffHistory = require('mongoose-audit-trail');
+const diffHistory = require("mongoose-audit-trail");
+
+const PedidoCounterSchema = Schema({
+  seq: { type: Number, default: 0 },
+});
+
+const pedidoCounterColleccion = model("pedidoCounter", PedidoCounterSchema);
 
 const pedidoDetalle = new Schema({
   articulo: {
@@ -31,12 +37,9 @@ const pedidoDetalle = new Schema({
     type: Number,
     required: [true, "El subtotal es requerido"],
   },
-
-  
 });
 
 const metodoPago = new Schema({
-
   importe: {
     type: Number,
     required: [true, "El precio unitario es requerido"],
@@ -45,17 +48,14 @@ const metodoPago = new Schema({
     type: String,
     required: true,
     default: "EFECTIVO",
-    emun: ["EFECTIVO", "TARJETA", "TRANSFERENCIA","CHEQUE"],
+    emun: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "CHEQUE"],
   },
   referencia: {
     type: String,
   },
-
-  
 });
 
 const direccionEnvio = new Schema({
-
   direccion: {
     type: Number,
     required: [true, "El precio unitario es requerido"],
@@ -66,8 +66,6 @@ const direccionEnvio = new Schema({
   obs: {
     type: String,
   },
-
-  
 });
 
 const PedidoSchema = new Schema({
@@ -105,7 +103,7 @@ const PedidoSchema = new Schema({
       "PAGADO",
       "FACTURADO", // se facturó
       "CANCELADO", // cancelado por el cliente
-      "ANULADO",   // anulado por la empresa
+      "ANULADO", // anulado por la empresa
       "REVERSADO", // pago reversado
     ],
   },
@@ -113,28 +111,17 @@ const PedidoSchema = new Schema({
     type: String,
     required: true,
     default: "CONTADO",
-    emun: [
-      "CONTADO",
-      "CREDITO",
-    ],
+    emun: ["CONTADO", "CREDITO"],
   },
   tipoPedido: {
     type: String,
     required: true,
     default: "CAJA",
-    emun: [
-      "CAJA",
-      "DELIVERY",
-    ],
+    emun: ["CAJA", "DELIVERY"],
   },
   estadoDelivery: {
     type: String,
-    emun: [
-      "EN ESPERA",
-      "EN CAMINO",
-      "ENTREGADO",
-      "PERDIDO",
-    ],
+    emun: ["EN ESPERA", "EN CAMINO", "ENTREGADO", "PERDIDO"],
   },
   direccionEnvio: {
     type: direccionEnvio,
@@ -185,7 +172,22 @@ PedidoSchema.plugin(diffHistory.plugin);
 
 const Pedido = model("Pedido", PedidoSchema);
 
+PedidoSchema.pre("save", async (next) => {
+  let doc = this;
+
+  let counterDoc = await pedidoCounterColleccion.findOne();
+  if (!counterDoc) {
+    counterDoc = new pedidoCounterColleccion({ seq: 1 });
+  } else {
+    counterDoc.seq++;
+  }
+  doc.nro = counterDoc.seq;
+  counterDoc.save();
+
+  next();
+});
+
 module.exports = {
   PedidoSchema,
-  Pedido
+  Pedido,
 };

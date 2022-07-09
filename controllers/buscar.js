@@ -106,7 +106,6 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
             select: "-__v",
           },
         })
-        .populate("marca", "descripcion")
         .populate("tipoVehiculo", "descripcion")
         .populate({
           path: "aseguradora",
@@ -124,50 +123,7 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
         .populate("usuarioModif", "username");
 
       break;
-    case "marca":
-      this.results = await Vehiculo.find()
-        .populate({
-          path: "cliente",
-          select: "-__v",
-          populate: {
-            path: "persona",
-            select: "-__v",
-          },
-        })
-        .populate("marca", "descripcion")
-        .populate("tipoVehiculo", "descripcion")
-        .populate("usuarioAlta", "username")
-        .populate({
-          path: "aseguradora",
-          select: "-__v",
-          populate: {
-            path: "cliente",
-            select: "-__v",
-            populate: {
-              path: "persona",
-              select: "-__v",
-            },
-          },
-        })
-        .populate("usuarioModif", "username")
-        .then(async (customers) => {
-          let aux = [];
 
-          await Promise.all(
-            customers.map(async (d) => {
-              const persona = await MarcaVehiculo.findOne({
-                _id: d.marca,
-                descripcion: regex,
-              });
-              if (persona) aux.push(d);
-            })
-          );
-
-          console.log(aux.length);
-          return aux;
-        });
-
-      break;
     case "cliente":
       this.results = await Vehiculo.find()
         .populate({
@@ -178,7 +134,6 @@ const buscarVehiculos = async (tipo, termino = "", res = response) => {
             select: "-__v",
           },
         })
-        .populate("marca", "descripcion")
         .populate("tipoVehiculo", "descripcion")
         .populate({
           path: "aseguradora",

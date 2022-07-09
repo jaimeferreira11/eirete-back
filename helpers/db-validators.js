@@ -6,7 +6,6 @@ const {
   Cliente,
   Proveedor,
   Articulo,
-  Marca,
   LineaArticulo,
   FamiliaArticulo,
   Sucursal,
@@ -180,17 +179,6 @@ const existeArticuloPorDescripcion = async (descripcion = "") => {
 };
 
 /**
- * Marca
- */
-const existeMarcaPorId = async (id) => {
-  // Verificar si el correo existe
-  const existe = await Marca.findById(id);
-  if (!existe) {
-    throw new Error(`El id no existe ${id}`);
-  }
-};
-
-/**
  * Linea articulo
  */
 const existeLineaArticuloPorId = async (id) => {
@@ -279,7 +267,6 @@ module.exports = {
   existeArticuloPorId,
   codArticuloExiste,
   existeArticuloPorDescripcion,
-  existeMarcaPorId,
   existeLineaArticuloPorId,
   existeFamiliaPorId,
 };

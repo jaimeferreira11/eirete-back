@@ -1,6 +1,11 @@
 const { Schema, model } = require("mongoose");
-const diffHistory = require('mongoose-audit-trail');
+const diffHistory = require("mongoose-audit-trail");
 
+const CajaCounterSchema = Schema({
+  seq: { type: Number, default: 0 },
+});
+
+const cajaCounterColleccion = model("cajaCounter", CajaCounterSchema);
 
 const CajaSchema = Schema({
   descripcion: {
@@ -44,5 +49,19 @@ const CajaSchema = Schema({
 
 CajaSchema.plugin(diffHistory.plugin);
 
+CajaSchema.pre("save", async (next) => {
+  let doc = this;
+
+  let counterDoc = await cajaCounterColleccion.findOne();
+  if (!counterDoc) {
+    counterDoc = new cajaCounterColleccion({ seq: 1 });
+  } else {
+    counterDoc.seq++;
+  }
+  doc.nro = counterDoc.seq;
+  counterDoc.save();
+
+  next();
+});
 
 module.exports = model("Caja", CajaSchema);
