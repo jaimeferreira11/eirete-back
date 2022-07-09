@@ -82,7 +82,7 @@ const ArticuloSchema = new Schema({
 
 ArticuloSchema.plugin(diffHistory.plugin);
 
-ArticuloSchema.pre("save", async (next) => {
+ArticuloSchema.pre("save", async function (next) {
   let doc = this;
 
   let counterDoc = await articuloCounterColleccion.findOne();

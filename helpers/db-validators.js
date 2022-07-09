@@ -9,6 +9,8 @@ const {
   LineaArticulo,
   FamiliaArticulo,
   Sucursal,
+  Caja,
+  Ciudad,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -201,6 +203,27 @@ const existeFamiliaPorId = async (id) => {
 };
 
 /**
+ * Cajas
+ */
+const existeCajaPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Caja.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+/**
+ * Ciudades
+ */
+const existeCiudadPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Ciudad.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
  * Validar colecciones permitidas
  */
 const coleccionesPermitidas = (coleccion = "", colecciones = []) => {
@@ -269,4 +292,6 @@ module.exports = {
   existeArticuloPorDescripcion,
   existeLineaArticuloPorId,
   existeFamiliaPorId,
+  existeCajaPorId,
+  existeCiudadPorId,
 };

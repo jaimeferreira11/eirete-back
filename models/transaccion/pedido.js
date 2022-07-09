@@ -172,7 +172,7 @@ PedidoSchema.plugin(diffHistory.plugin);
 
 const Pedido = model("Pedido", PedidoSchema);
 
-PedidoSchema.pre("save", async (next) => {
+PedidoSchema.pre("save", async function (next) {
   let doc = this;
 
   let counterDoc = await pedidoCounterColleccion.findOne();

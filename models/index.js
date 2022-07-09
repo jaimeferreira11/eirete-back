@@ -8,6 +8,7 @@ const Programa = require("./seguridad/programa");
 // Catastro
 const Cliente = require("./catastro/clientes");
 const Persona = require("./catastro/persona");
+const Ciudad = require("./catastro/ciudades");
 
 //Stock
 const Sucursal = require("./stock/sucursal");
@@ -17,7 +18,11 @@ const Articulo = require("./stock/articulo");
 const ArticuloSucursal = require("./stock/articulo-sucursal");
 
 // transaccion
-const {Pedido, PedidoSchema} = require("./transaccion/pedido");
+const { Pedido, PedidoSchema } = require("./transaccion/pedido");
+
+// tesoreria
+const Caja = require("./tesoreria/caja");
+
 const Server = require("./server");
 
 module.exports = {
@@ -34,6 +39,8 @@ module.exports = {
   FamiliaArticulo,
   Articulo,
   ArticuloSucursal,
-  Pedido, 
-  PedidoSchema
+  Pedido,
+  PedidoSchema,
+  Caja,
+  Ciudad,
 };

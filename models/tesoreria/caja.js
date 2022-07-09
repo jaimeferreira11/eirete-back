@@ -49,8 +49,8 @@ const CajaSchema = Schema({
 
 CajaSchema.plugin(diffHistory.plugin);
 
-CajaSchema.pre("save", async (next) => {
-  let doc = this;
+CajaSchema.pre("validate", async function (next) {
+  const doc = this;
 
   let counterDoc = await cajaCounterColleccion.findOne();
   if (!counterDoc) {
@@ -60,7 +60,6 @@ CajaSchema.pre("save", async (next) => {
   }
   doc.nro = counterDoc.seq;
   counterDoc.save();
-
   next();
 });
 
