@@ -3,8 +3,17 @@ const { Articulo, Sucursal } = require("../../models");
 const { addArticuloToSucursales } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    estado = true,
+    search,
+  } = req.query;
   const query = { estado };
+
+  if (search)
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([

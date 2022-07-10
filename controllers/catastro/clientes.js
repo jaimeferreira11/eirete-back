@@ -9,7 +9,7 @@ const getAll = async (req, res = response) => {
     desde = 0,
     paginado = true,
     orderBy = "persona.nombreApellido",
-    direction = "desc",
+    direction = -1,
   } = req.query;
   const query = { estado: true };
 

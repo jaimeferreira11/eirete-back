@@ -2,11 +2,22 @@ const { response } = require("express");
 const { Perfil } = require("../../models");
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true } = req.query;
+  const {
+    limite = 10,
+    desde = 0,
+    estado = true,
+    paginado = true,
+    search,
+  } = req.query;
+
+  let query = { estado };
+  if (search)
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
+
   if (paginado === "true") {
     const [total, data] = await Promise.all([
-      Perfil.countDocuments(),
-      Perfil.find().skip(Number(desde)).limit(Number(limite)),
+      Perfil.countDocuments(query),
+      Perfil.find(query).skip(Number(desde)).limit(Number(limite)),
     ]);
 
     res.json({
@@ -14,7 +25,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await Perfil.find();
+    const data = await Perfil.find(query);
     res.json(data);
   }
 };

@@ -1,11 +1,23 @@
 const { response } = require("express");
-const { ObjectId } = require("mongoose").Types;
-
 const { Caja } = require("../../models");
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
-  const query = { estado };
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    estado = true,
+    search,
+  } = req.query;
+  let query = { estado };
+
+  if (search) {
+    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    query = {
+      $or: [{ descripcion: regex }, { nro: regex }],
+      $and: [{ estado: true }],
+    };
+  }
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
