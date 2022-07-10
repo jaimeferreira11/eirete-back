@@ -17,22 +17,42 @@ const getById = async (req, res = response) => {
 };
 
 const usuariosGet = async (req = request, res = response) => {
-  const { limite = 10, desde = 0 } = req.query;
-  const query = { estado: true };
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    estado = true,
+    search,
+  } = req.query;
+  let query = { estado };
 
-  const [total, data] = await Promise.all([
-    Usuario.countDocuments(query),
-    Usuario.find(query)
+  if (search) {
+    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    query = {
+      $or: [{ nombreApellido: regex }, { username: regex }],
+      $and: [{ estado }],
+    };
+  }
+
+  if (paginado === "true") {
+    const [total, data] = await Promise.all([
+      Usuario.countDocuments(query),
+      Usuario.find(query)
+        .populate("perfiles", "descripcion")
+        .populate("sucursal", "descripcion")
+        .skip(Number(desde))
+        .limit(Number(limite)),
+    ]);
+    res.json({
+      total,
+      data,
+    });
+  } else {
+    const data = await Usuario.find(query)
       .populate("perfiles", "descripcion")
-      .populate("sucursal", "descripcion")
-      .skip(Number(desde))
-      .limit(Number(limite)),
-  ]);
-
-  res.json({
-    total,
-    data,
-  });
+      .populate("sucursal", "descripcion");
+    res.json(data);
+  }
 };
 
 const usuariosPost = async (req, res = response) => {
