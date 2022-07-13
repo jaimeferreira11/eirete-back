@@ -8,7 +8,9 @@ const {
   getAll,
   getById,
   getByPersonaId,
+  getByPersonaDoc,
   update,
+  changeStatus,
 } = require("../controllers/catastro/clientes");
 const {
   existeClientePorId,
@@ -47,6 +49,19 @@ router.get(
     validarCampos,
   ],
   getByPersonaId
+);
+
+router.get(
+  "/search/persona/nrodoc/:doc",
+  [
+    validarJWT,
+    check("doc", "El documento es obligatoria").not().isEmpty(),
+    check("doc", "El documento debe de al menos 6 digitos").isLength({
+      min: 6,
+    }),
+    validarCampos,
+  ],
+  getByPersonaDoc
 );
 
 // Crear categoria - privado - cualquier persona con un token válido
@@ -101,6 +116,20 @@ router.put(
     validarCampos,
   ],
   update
+);
+
+router.put(
+  "/change-status/:id/:status",
+  [
+    validarJWT,
+    esAdminRole,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeClientePorId),
+    check("status", "El estado es obligatorio").not().isEmpty(),
+    check("status", "El estado debe ser boolean").isBoolean(),
+    validarCampos,
+  ],
+  changeStatus
 );
 
 module.exports = router;

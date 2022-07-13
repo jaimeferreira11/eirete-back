@@ -23,7 +23,8 @@ const {
   usuariosPut,
   usuariosPost,
   usuariosDelete,
-  activate,
+  changeStatus,
+  usuarioByUsername,
 } = require("../controllers/seguridad/usuarios");
 
 const router = Router();
@@ -34,6 +35,16 @@ router.get(
   "/:id",
   [validarJWT, check("id", "No es un ID válido").isMongoId(), validarCampos],
   getById
+);
+
+router.get(
+  "/username/:username",
+  [
+    validarJWT,
+    check("username", "No es un ID válido").not().isEmpty(),
+    validarCampos,
+  ],
+  usuarioByUsername
 );
 
 router.put(
@@ -90,19 +101,7 @@ router.put(
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,
   ],
-  activate
-);
-
-router.delete(
-  "/:id",
-  [
-    validarJWT,
-    esAdminRole,
-    check("id", "No es un ID válido").isMongoId(),
-    check("id").custom(existeUsuarioPorId),
-    validarCampos,
-  ],
-  usuariosDelete
+  changeStatus
 );
 
 module.exports = router;
