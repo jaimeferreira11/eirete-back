@@ -56,8 +56,24 @@ const getByPersonaId = async (req, res = response) => {
     .populate("usuarioModif", "username");
 
   if (!modelDB) {
-    return res.status(401).json({
-      msg: `El Cliente no existe`,
+    return res.status(404).json({
+      msg: `La personas con id ${id} no es cliente`,
+    });
+  }
+
+  res.json(modelDB);
+};
+
+const getByPersonaDoc = async (req, res = response) => {
+  const { doc } = req.params;
+  const modelDB = await Cliente.findOne({ "persona.nroDoc": doc })
+    .populate("persona", "-__v")
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+
+  if (!modelDB) {
+    return res.status(404).json({
+      msg: `El Cliente con doc ${doc} no existe`,
     });
   }
 
@@ -156,11 +172,11 @@ const update = async (req, res = response) => {
   }
 };
 
-const inactivate = async (req, res = response) => {
-  const { id } = req.params;
+const changeStatus = async (req, res = response) => {
+  const { id, status } = req.params;
   const modelBorrado = await Cliente.findByIdAndUpdate(
     id,
-    { estado: false },
+    { estado: status },
     { new: true }
   );
 
@@ -173,5 +189,6 @@ module.exports = {
   getById,
   getByPersonaId,
   update,
-  inactivate,
+  changeStatus,
+  getByPersonaDoc,
 };

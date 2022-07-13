@@ -93,7 +93,7 @@ const usuariosDelete = async (req, res = response) => {
   res.json(usuario);
 };
 
-const activate = async (req, res = response) => {
+const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
   const modelBorrado = await Usuario.findByIdAndUpdate(
     id,
@@ -104,11 +104,26 @@ const activate = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const usuarioByUsername = async (req, res = response) => {
+  const { username } = req.params;
+
+  const data = await Usuario.findOne({ username: username.toUpperCase() });
+
+  if (!data) {
+    return res.status(404).json({
+      msg: `No existe el usuario: ${username}`,
+    });
+  } else {
+    res.json(data);
+  }
+};
+
 module.exports = {
   usuariosGet,
   usuariosPost,
   usuariosPut,
   usuariosDelete,
   getById,
-  activate,
+  changeStatus,
+  usuarioByUsername,
 };

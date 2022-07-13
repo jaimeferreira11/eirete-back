@@ -2,15 +2,9 @@ const { response } = require("express");
 const { Perfil } = require("../../models");
 
 const getAll = async (req, res = response) => {
-  const {
-    limite = 10,
-    desde = 0,
-    estado = true,
-    paginado = true,
-    search,
-  } = req.query;
+  const { limite = 10, desde = 0, paginado = true, search } = req.query;
 
-  let query = { estado };
+  let query = {};
   if (search)
     query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
