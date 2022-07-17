@@ -14,9 +14,11 @@ const getAll = async (req, res = response) => {
   if (search) {
     const regex = { $regex: ".*" + search + ".*", $options: "i" };
     query = {
-      $or: [{ descripcion: regex }, { nro: regex }],
+      $or: [{ descripcion: regex }],
       $and: [{ estado: true }],
     };
+
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
   }
 
   if (paginado === "true") {
@@ -76,11 +78,9 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, ...data } = req.body;
+  const { estado, nro, ...data } = req.body;
 
   const descripcion = data.descripcion.toUpperCase();
-
-  console.log(id);
   const modelDB = await Caja.findOne({
     descripcion,
   });
