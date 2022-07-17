@@ -1,37 +1,38 @@
-const { response } = require("express");
-const { Cliente, Persona } = require("../../models");
-const { updatePersona } = require("./personas");
-const ObjectId = require("mongoose").Types.ObjectId;
+const { response } = require('express');
+const { Cliente, Persona } = require('../../models');
+const { updatePersona } = require('./personas');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
-    orderBy = "persona.nombreApellido",
+    orderBy = 'persona.nombreApellido',
     direction = -1,
     estado = true,
-    search = "",
+    search = '',
   } = req.query;
-  let query = {
-    estado,
-  };
+
+  let query = {};
+
+  if (estado !== 'all') query.estado = estado;
 
   if (search) {
-    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    const regex = { $regex: '.*' + search + '.*', $options: 'i' };
     query = {
-      estado,
+      ...query,
       $or: [{ nombreApellido: regex }, { nroDoc: regex }],
     };
   }
-  console.log(query);
+
   if (paginado) {
     const [total, data] = await Promise.all([
       Cliente.countDocuments(query),
       Cliente.find(query)
-        .populate("persona", "-__v")
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('persona', '-__v')
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ orderBy: direction }),
@@ -43,9 +44,9 @@ const getAll = async (req, res = response) => {
     });
   } else {
     const data = await Cliente.find(query)
-      .populate("persona", "-__v")
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate('persona', '-__v')
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username');
     res.json(data);
   }
 };
@@ -53,9 +54,9 @@ const getAll = async (req, res = response) => {
 const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Cliente.findById(id)
-    .populate("persona", "-__v")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('persona', '-__v')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   res.json(modelDB);
 };
@@ -63,9 +64,9 @@ const getById = async (req, res = response) => {
 const getByPersonaId = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Cliente.findOne({ persona: ObjectId(id) })
-    .populate("persona", "-__v")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('persona', '-__v')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   if (!modelDB) {
     return res.status(404).json({
@@ -78,10 +79,10 @@ const getByPersonaId = async (req, res = response) => {
 
 const getByPersonaDoc = async (req, res = response) => {
   const { doc } = req.params;
-  const modelDB = await Cliente.findOne({ "persona.nroDoc": doc })
-    .populate("persona", "-__v")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+  const modelDB = await Cliente.findOne({ 'persona.nroDoc': doc })
+    .populate('persona', '-__v')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   if (!modelDB) {
     return res.status(404).json({
@@ -109,11 +110,11 @@ const add = async (req, res = response) => {
 
     let idCliente;
     if (!personaData._id) {
-      console.log("Insertando persona");
+      console.log('Insertando persona');
       let newPersona = new Persona(personaData);
       await newPersona.save();
     } else {
-      console.log("Ya existe la persona");
+      console.log('Ya existe la persona');
       // actualizar persona
       const personaUpdated = await Persona.findByIdAndUpdate(
         personaData._id,
@@ -125,14 +126,14 @@ const add = async (req, res = response) => {
       });
       if (clienteDB) {
         idCliente = clienteDB._id;
-        console.log("Existe el cliente, setear el id ");
+        console.log('Existe el cliente, setear el id ');
       }
     }
 
     const persona = await Persona.findOne({ nroDoc: personaData.nroDoc });
     if (idCliente) {
       // actualizar
-      console.log("Actualizando");
+      console.log('Actualizando');
       const clienteData = {
         _id: idCliente,
         ...req.body,
@@ -143,7 +144,7 @@ const add = async (req, res = response) => {
         await Cliente.findByIdAndUpdate(idCliente, clienteData, { new: true })
       );
     } else {
-      console.log("Insertando el cliente ");
+      console.log('Insertando el cliente ');
 
       const clienteData = {
         ...req.body,
