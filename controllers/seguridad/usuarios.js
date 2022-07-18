@@ -21,9 +21,12 @@ const usuariosGet = async (req = request, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
+
   let query = { estado };
 
   if (search) {
@@ -41,7 +44,8 @@ const usuariosGet = async (req = request, res = response) => {
         .populate("perfiles", "descripcion")
         .populate("sucursal", "descripcion")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
     res.json({
       total,
@@ -50,7 +54,8 @@ const usuariosGet = async (req = request, res = response) => {
   } else {
     const data = await Usuario.find(query)
       .populate("perfiles", "descripcion")
-      .populate("sucursal", "descripcion");
+      .populate("sucursal", "descripcion")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
