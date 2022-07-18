@@ -6,8 +6,10 @@ const getAll = async (req, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
   const query = { estado };
 
@@ -17,7 +19,10 @@ const getAll = async (req, res = response) => {
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       FamiliaArticulo.countDocuments(query),
-      FamiliaArticulo.find(query).skip(Number(desde)).limit(Number(limite)),
+      FamiliaArticulo.find(query)
+        .skip(Number(desde))
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -25,7 +30,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await FamiliaArticulo.find(query);
+    const data = await FamiliaArticulo.find(query).sort({ orderBy: direction });
     res.json(data);
   }
 };

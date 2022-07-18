@@ -6,9 +6,12 @@ const getAll = async (req, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
+
   let query = { estado };
 
   if (search) {
@@ -29,7 +32,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -40,7 +44,8 @@ const getAll = async (req, res = response) => {
     const data = await Caja.find(query)
       .populate("sucursal", "descripcion")
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
