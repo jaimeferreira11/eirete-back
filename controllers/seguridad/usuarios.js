@@ -27,11 +27,12 @@ const usuariosGet = async (req = request, res = response) => {
     search = "",
   } = req.query;
 
-  let query = { estado };
+  if (estado !== "all") query.estado = estado;
 
   if (search) {
     const regex = { $regex: ".*" + search + ".*", $options: "i" };
     query = {
+      ...query,
       $or: [{ nombreApellido: regex }, { username: regex }],
       $and: [{ estado }],
     };
