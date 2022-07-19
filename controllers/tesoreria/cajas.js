@@ -1,5 +1,9 @@
 const { response } = require("express");
 const { Caja } = require("../../models");
+const {
+  skipAcentAndSpace
+} = require("../../helpers/strings-helper");
+
 
 const getAll = async (req, res = response) => {
   const {
@@ -15,14 +19,15 @@ const getAll = async (req, res = response) => {
   let query = { estado };
 
   if (search) {
-    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    const regex = { $regex: ".*" + skipAcentAndSpace(search) + ".*", $options: "i" };
     query = {
       $or: [{ descripcion: regex }],
       $and: [{ estado: true }],
     };
 
-    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
   }
+
+  console.log(query);
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
