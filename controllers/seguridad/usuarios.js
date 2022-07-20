@@ -1,6 +1,8 @@
 const { response, request } = require("express");
 const bcryptjs = require("bcryptjs");
 
+const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+
 const { Usuario } = require("../../models");
 
 const getById = async (req, res = response) => {
@@ -27,10 +29,15 @@ const usuariosGet = async (req = request, res = response) => {
     search = "",
   } = req.query;
 
-  if (estado !== "all") query.estado = estado;
+  let query = {};
+
+  if (estado && estado !== "all") query.estado = estado;
 
   if (search) {
-    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    const regex = {
+      $regex: ".*" + skipAcentAndSpace(search) + ".*",
+      $options: "i",
+    };
     query = {
       ...query,
       $or: [{ nombreApellido: regex }, { username: regex }],
