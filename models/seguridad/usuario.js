@@ -1,4 +1,6 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require('mongoose-audit-trail');
+
 
 const UsuarioSchema = Schema({
   username: {
@@ -49,13 +51,20 @@ const UsuarioSchema = Schema({
     ref: "Sucursal",
     required: true,
   },
+  caja: {
+    type: Schema.Types.ObjectId,
+    ref: "Caja",
+  },
 });
 
 // evitar que devuelva la contraseña
 UsuarioSchema.methods.toJSON = function () {
-  const { __v, password, _id, ...usuario } = this.toObject();
-  usuario.uid = _id;
+  const { __v, password, ...usuario } = this.toObject();
+  //  usuario.uid = _id;
   return usuario;
 };
+
+UsuarioSchema.plugin(diffHistory.plugin);
+
 
 module.exports = model("Usuario", UsuarioSchema);

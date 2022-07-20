@@ -3,15 +3,56 @@ const { Cliente, Persona } = require("../../models");
 const { updatePersona } = require("./personas");
 const ObjectId = require("mongoose").Types.ObjectId;
 
+const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
     orderBy = "persona.nombreApellido",
-    direction = "desc",
+    direction = -1,
+    estado = true,
+    search = "",
   } = req.query;
-  const query = { estado: true };
+
+  let query = {};
+
+  if (estado && estado !== "all") query.estado = estado;
+
+  if (search) {
+    const regex = {
+      $regex: ".*" + skipAcentAndSpace(search) + ".*",
+      $options: "i",
+    };
+
+    const results = await Cliente.find(query)
+      .populate("persona", "-__v")
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction })
+      .then(async (customers) => {
+        let clientes = [];
+
+        await Promise.all(
+          customers.map(async (d) => {
+            const persona = await Persona.findOne({
+              _id: d.persona,
+              $or: [{ nombreApellido: regex }, { nroDoc: regex }],
+            });
+            if (persona) clientes.push(d);
+          })
+        );
+
+        console.log("clientes encontrados", clientes.length);
+        return clientes;
+      });
+
+    return res.json({
+      total: results.length,
+      data: results,
+    });
+  }
 
   if (paginado) {
     const [total, data] = await Promise.all([
@@ -56,8 +97,24 @@ const getByPersonaId = async (req, res = response) => {
     .populate("usuarioModif", "username");
 
   if (!modelDB) {
-    return res.status(401).json({
-      msg: `El Cliente no existe`,
+    return res.status(404).json({
+      msg: `La personas con id ${id} no es cliente`,
+    });
+  }
+
+  res.json(modelDB);
+};
+
+const getByPersonaDoc = async (req, res = response) => {
+  const { doc } = req.params;
+  const modelDB = await Cliente.findOne({ "persona.nroDoc": doc })
+    .populate("persona", "-__v")
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+
+  if (!modelDB) {
+    return res.status(404).json({
+      msg: `El Cliente con doc ${doc} no existe`,
     });
   }
 
@@ -104,7 +161,6 @@ const add = async (req, res = response) => {
     const persona = await Persona.findOne({ nroDoc: personaData.nroDoc });
     if (idCliente) {
       // actualizar
-      console.log("Actualizando");
       const clienteData = {
         _id: idCliente,
         ...req.body,
@@ -156,11 +212,11 @@ const update = async (req, res = response) => {
   }
 };
 
-const inactivate = async (req, res = response) => {
-  const { id } = req.params;
+const changeStatus = async (req, res = response) => {
+  const { id, status } = req.params;
   const modelBorrado = await Cliente.findByIdAndUpdate(
     id,
-    { estado: false },
+    { estado: status },
     { new: true }
   );
 
@@ -173,5 +229,6 @@ module.exports = {
   getById,
   getByPersonaId,
   update,
-  inactivate,
+  changeStatus,
+  getByPersonaDoc,
 };

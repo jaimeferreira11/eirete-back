@@ -1,6 +1,8 @@
 const { response, request } = require("express");
 const bcryptjs = require("bcryptjs");
 
+const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+
 const { Usuario } = require("../../models");
 
 const getById = async (req, res = response) => {
@@ -17,22 +19,53 @@ const getById = async (req, res = response) => {
 };
 
 const usuariosGet = async (req = request, res = response) => {
-  const { limite = 10, desde = 0 } = req.query;
-  const query = { estado: true };
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
+    estado = true,
+    search = "",
+  } = req.query;
 
-  const [total, data] = await Promise.all([
-    Usuario.countDocuments(query),
-    Usuario.find(query)
+  let query = {};
+
+  if (estado && estado !== "all") query.estado = estado;
+
+  if (search) {
+    const regex = {
+      $regex: ".*" + skipAcentAndSpace(search) + ".*",
+      $options: "i",
+    };
+    query = {
+      ...query,
+      $or: [{ nombreApellido: regex }, { username: regex }],
+      $and: [{ estado }],
+    };
+  }
+
+  if (paginado === "true") {
+    const [total, data] = await Promise.all([
+      Usuario.countDocuments(query),
+      Usuario.find(query)
+        .populate("perfiles", "descripcion")
+        .populate("sucursal", "descripcion")
+        .skip(Number(desde))
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
+    ]);
+    res.json({
+      total,
+      data,
+    });
+  } else {
+    const data = await Usuario.find(query)
       .populate("perfiles", "descripcion")
       .populate("sucursal", "descripcion")
-      .skip(Number(desde))
-      .limit(Number(limite)),
-  ]);
-
-  res.json({
-    total,
-    data,
-  });
+      .sort({ orderBy: direction });
+    res.json(data);
+  }
 };
 
 const usuariosPost = async (req, res = response) => {
@@ -73,7 +106,7 @@ const usuariosDelete = async (req, res = response) => {
   res.json(usuario);
 };
 
-const activate = async (req, res = response) => {
+const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
   const modelBorrado = await Usuario.findByIdAndUpdate(
     id,
@@ -84,11 +117,26 @@ const activate = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const usuarioByUsername = async (req, res = response) => {
+  const { username } = req.params;
+
+  const data = await Usuario.findOne({ username: username.toUpperCase() });
+
+  if (!data) {
+    return res.status(404).json({
+      msg: `No existe el usuario: ${username}`,
+    });
+  } else {
+    res.json(data);
+  }
+};
+
 module.exports = {
   usuariosGet,
   usuariosPost,
   usuariosPut,
   usuariosDelete,
   getById,
-  activate,
+  changeStatus,
+  usuarioByUsername,
 };

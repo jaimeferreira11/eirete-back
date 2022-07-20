@@ -1,9 +1,22 @@
 const { response } = require("express");
-const { Articulo } = require("../../models");
+const { Articulo, Sucursal } = require("../../models");
+const { addArticuloToSucursales } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
+    estado = true,
+    search = "",
+  } = req.query;
+
   const query = { estado };
+
+  if (search)
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
@@ -20,7 +33,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -38,7 +52,8 @@ const getAll = async (req, res = response) => {
         },
       })
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
@@ -64,7 +79,7 @@ const getByCodigo = async (req, res = response) => {
   const { codigo } = req.query;
   console.log(`Buscando el articulo por codigo  ${codigo}`);
 
-  const modelDB = await existeArticuloByCodigo(codigo);
+  const modelDB = await existeArticuloByCodigoBarra(codigo);
   if (!modelDB) {
     console.log(`No existe el articulo con codigo: ${codigo}`);
     return res.status(404).json({
@@ -77,25 +92,33 @@ const getByCodigo = async (req, res = response) => {
 
 const add = async (req, res = response) => {
   try {
-    const { _id, codigo } = req.body;
+    const { _id, codigoBarra } = req.body;
     if (_id) {
       const modelDB = await Articulo.findById(_id);
       if (modelDB) {
         return res.status(400).json({
-          msg: `El articulo ${modelDB.codigo}, ya existe`,
+          msg: `El articulo ${modelDB.codigoBarra}, ya existe`,
         });
       }
     }
 
-    if (await existeArticuloByCodigo(codigo)) {
+    if (await existeArticuloByCodigoBarra(codigoBarra)) {
       return res.status(400).json({
-        msg: `Ya existe el articulo con codigo: ${codigo}`,
+        msg: `Ya existe el articulo con codigo barra: ${codigoBarra}`,
       });
     }
     // Generar la data a guardar
     req.body._id = null;
 
     const newModel = await addArticulo(new Articulo(req.body), req.usuario._id);
+
+    // Guardar el nuevo articulo en todas las sucursales
+    // FIXME: No devuelve el id, por eso se hace nuevamente un find
+    await addArticuloToSucursales(
+      await Articulo.findOne({ descripcion: newModel.descripcion }),
+      req.usuario._id
+    );
+
     res.json(newModel);
   } catch (error) {
     console.log(error);
@@ -128,8 +151,8 @@ const update = async (req, res = response) => {
   res.json(newModel);
 };
 
-const existeArticuloByCodigo = async (codigo = "") => {
-  return await Articulo.findOne({ codigo })
+const existeArticuloByCodigoBarra = async (codigoBarra = "") => {
+  return await Articulo.findOne({ codigoBarra })
     .populate({
       path: "lineaArticulo",
       select: "-__v",
@@ -138,16 +161,15 @@ const existeArticuloByCodigo = async (codigo = "") => {
         select: "-__v",
       },
     })
-    .populate("marca", "descripcion")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 };
 
 const addArticulo = async (newArticulo = Articulo, usuario_id = null) => {
   try {
-    if (await existeArticuloByCodigo(newArticulo.codigo)) {
+    if (await existeArticuloByCodigoBarra(newArticulo.codigoBarra)) {
       throw new Error(
-        `El articulo con codigo: ${newArticulo.codigo}, ya está registrado`
+        `El articulo con codigo: ${newArticulo.codigoBarra}, ya está registrado`
       );
     }
 
@@ -197,6 +219,6 @@ module.exports = {
   update,
   addArticulo,
   updateArticulo,
-  existeArticuloByCodigo,
+  existeArticuloByCodigoBarra,
   changeStatus,
 };

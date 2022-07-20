@@ -1,9 +1,25 @@
 const { response } = require("express");
-const { Sucursal } = require("../../models");
+const ObjectId = require("mongoose").Types.ObjectId;
+
+const { Sucursal, Articulo, ArticuloSucursal } = require("../../models");
+const sucursal = require("../../models/stock/sucursal");
+const { createArticuloSucursal } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
-  const query = { estado };
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
+    estado = true,
+    search = "",
+  } = req.query;
+
+  let query = { estado };
+
+  if (search)
+    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
@@ -12,7 +28,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -22,7 +39,8 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Sucursal.find(query)
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
@@ -47,16 +65,34 @@ const add = async (req, res = response) => {
         });
       }
     }
+
     req.body.descripcion = req.body.descripcion.toUpperCase();
+    if (await Sucursal.findOne({ descripcion: req.body.descripcion })) {
+      return res.status(400).json({
+        msg: `La sucursal  ${req.body.descripcion}, ya existe`,
+      });
+    }
+
+    // punto de expedicion
+    if (await Sucursal.findOne({ establecimiento: req.body.establecimiento })) {
+      return res.status(400).json({
+        msg: `El establecimiento ${req.body.establecimiento}, ya está registrado`,
+      });
+    }
+
     const sucursalData = {
-      ...req.body,
       usuarioAlta: req.usuario._id,
+      ...req.body,
     };
 
     const newModel = new Sucursal(sucursalData);
 
     // Guardar DB
     await newModel.save();
+
+    //
+    // cuando se crea una sucursal, se crea articulo-sucursal con los articulos existentes
+    await createArticuloSucursal(newModel._id, req.usuario._id);
 
     res.json(newModel);
   } catch (error) {
@@ -69,10 +105,22 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, usuarioAlta, fechaAlta, nroActual, ...data } = req.body;
+  const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
+    req.body;
+
+  // punto de expedicion
+  const model = await Sucursal.findOne({
+    establecimiento: req.body.establecimiento,
+  });
+  if (model && model._id != id) {
+    return res.status(400).json({
+      msg: `El establecimiento ${req.body.establecimiento}, ya está registrado en la sucursal ${model.descripcion}`,
+    });
+  }
 
   data.descripcion = data.descripcion.toUpperCase();
   data.usuarioModif = req.usuario._id;
+
   data.fechaModif = Date.now();
 
   const newModel = await Sucursal.findByIdAndUpdate(id, data, { new: true });

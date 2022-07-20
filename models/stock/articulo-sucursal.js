@@ -1,15 +1,12 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require('mongoose-audit-trail');
 
-const ArticuloSucursalSchema = Schema({
+
+const articuloStock = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
     ref: "Articulo",
     required: [true, "El articulo es obligatorio"],
-  },
-  sucursal: {
-    type: Schema.Types.ObjectId,
-    ref: "Sucursal",
-    required: [true, "La sucursal es obligatoria"],
   },
   stock: {
     type: Number,
@@ -43,5 +40,22 @@ const ArticuloSucursalSchema = Schema({
     ref: "Usuario",
   },
 });
+
+const ArticuloSucursalSchema = new Schema({
+  sucursal: {
+    type: Schema.Types.ObjectId,
+    ref: "Sucursal",
+    unique: true,
+    required: [true, "La sucursal es obligatoria"],
+  },
+  articulos: {
+    type: [articuloStock],
+    default: [],
+    required: [true, "Los articulos son obligatorios"],
+  },
+});
+
+ArticuloSucursalSchema.plugin(diffHistory.plugin);
+
 
 module.exports = model("ArticuloSucursal", ArticuloSucursalSchema);
