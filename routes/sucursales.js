@@ -94,7 +94,6 @@ router.put(
   [
     validarJWT,
     check("id").custom(existeSucursalPorId),
-    check("descripcion").custom(existeSucursalPorDescripcion),
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
     check("direccion", "La direccion es obligatoria").not().isEmpty(),
     check("ciudad", "La ciudad es obligatoria").not().isEmpty(),

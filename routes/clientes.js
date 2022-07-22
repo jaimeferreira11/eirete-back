@@ -15,6 +15,7 @@ const {
 const {
   existeClientePorId,
   existeClientePorDoc,
+  existePersonaPorId,
   nroDocExiste,
 } = require("../helpers/db-validators");
 
@@ -96,6 +97,8 @@ router.put(
   "/:id",
   [
     validarJWT,
+    check("persona._id", "No es un id de Mongo válido").isMongoId(),
+    check("persona._id").custom(existePersonaPorId),
     check("persona.nroDoc", "El documento es obligatoria").not().isEmpty(),
     check("persona.nroDoc", "El documento debe de al menos 6 digitos").isLength(
       { min: 6 }

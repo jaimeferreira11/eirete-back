@@ -135,6 +135,7 @@ const add = async (req, res = response) => {
     // Generar la data a guardar
     let personaData = req.body.persona;
     personaData.usuarioAlta = req.usuario._id;
+    personaData.nombreApellido = req.body.persona.nombreApellido.toUpperCase();
 
     let idCliente;
     if (!personaData._id) {
