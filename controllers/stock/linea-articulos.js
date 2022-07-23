@@ -21,7 +21,6 @@ const getAll = async (req, res = response) => {
     const [total, data] = await Promise.all([
       LineaArticulo.countDocuments(query),
       LineaArticulo.find(query)
-        .populate("familia", "descripcion")
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ orderBy: direction }),
@@ -32,9 +31,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query)
-      .populate("familia", "descripcion")
-      .sort({ orderBy: direction });
+    const data = await LineaArticulo.find(query).sort({ orderBy: direction });
     res.json(data);
   }
 };
@@ -47,43 +44,6 @@ const getById = async (req, res = response) => {
   );
 
   res.json(modelDB);
-};
-
-const getByFamilia = async (req, res = response) => {
-  const { id } = req.params;
-  const {
-    limite = 10,
-    desde = 0,
-    paginado = true,
-    orderBy = "descripcion",
-    direction = -1,
-    estado = true,
-  } = req.query;
-
-  const query = { familia: id, estado };
-
-  if (paginado === "true") {
-    const [total, data] = await Promise.all([
-      LineaArticulo.countDocuments(query),
-      LineaArticulo.find(query)
-        .populate("familia", "descripcion")
-        .skip(Number(desde))
-        .limit(Number(limite))
-        .sort({ orderBy: direction }),
-    ]);
-
-    res.json({
-      total,
-      data,
-    });
-  } else {
-    const modelDB = await LineaArticulo.find(query).populate(
-      "familia",
-      "descripcion"
-    );
-
-    res.json(modelDB);
-  }
 };
 
 const add = async (req, res = response) => {
@@ -148,5 +108,4 @@ module.exports = {
   update,
   changeStatus,
   inactivate,
-  getByFamilia,
 };

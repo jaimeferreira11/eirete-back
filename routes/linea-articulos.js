@@ -10,12 +10,8 @@ const {
   update,
   inactivate,
   changeStatus,
-  getByFamilia,
 } = require("../controllers/stock/linea-articulos");
-const {
-  existeLineaArticuloPorId,
-  existeFamiliaPorId,
-} = require("../helpers/db-validators");
+const { existeLineaArticuloPorId } = require("../helpers/db-validators");
 
 const router = Router();
 
@@ -36,24 +32,12 @@ router.get(
   getById
 );
 
-router.get(
-  "/familia/:id",
-  [
-    validarJWT,
-    check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeFamiliaPorId),
-    validarCampos,
-  ],
-  getByFamilia
-);
-
 router.post(
   "/",
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   add
@@ -65,8 +49,7 @@ router.put(
     validarJWT,
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("id").custom(existeLineaArticuloPorId),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   update

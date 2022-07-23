@@ -20,7 +20,6 @@ class Server {
       clientes: "/api/clientes",
       sucursales: "/api/sucursales",
       lineaArticulos: "/api/linea-articulos",
-      familiaArticulos: "/api/familia-articulos",
       articulos: "/api/articulos",
       articulosSucursal: "/api/stock",
       cajas: "/api/cajas",
@@ -75,10 +74,7 @@ class Server {
       this.paths.lineaArticulos,
       require("../routes/linea-articulos")
     );
-    this.app.use(
-      this.paths.familiaArticulos,
-      require("../routes/familia-articulos")
-    );
+
     this.app.use(this.paths.articulos, require("../routes/articulos"));
     this.app.use(
       this.paths.articulosSucursal,

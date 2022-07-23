@@ -21,13 +21,11 @@ const {
 const router = Router();
 
 /**
- * {{url}}/api/categorias
+ * {{url}}/api/articulos
  */
 
-//  Obtener todas las categorias - publico
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id
 router.get(
   "/:id",
   [
@@ -39,7 +37,6 @@ router.get(
   getById
 );
 
-// Obtener una categoria por id
 router.get(
   "/search/codigo",
   [
@@ -50,7 +47,6 @@ router.get(
   getByCodigo
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
 router.post(
   "/",
   [
@@ -92,7 +88,6 @@ router.post(
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
 router.put(
   "/:id",
   [
