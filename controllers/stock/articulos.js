@@ -1,5 +1,6 @@
 const { response } = require("express");
-const { Articulo, Sucursal } = require("../../models");
+const { ObjectId } = require("mongoose").Types;
+const { Articulo, Sucursal, LineaArticulo } = require("../../models");
 const { addArticuloToSucursales } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
@@ -10,6 +11,7 @@ const getAll = async (req, res = response) => {
     orderBy = "descripcion",
     direction = -1,
     estado = true,
+    linea,
     search = "",
   } = req.query;
 
@@ -18,6 +20,10 @@ const getAll = async (req, res = response) => {
   if (search)
     query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
+  if (linea) query.lineaArticulo = ObjectId(linea);
+
+  console.log(query);
+
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       Articulo.countDocuments(query),
@@ -25,10 +31,6 @@ const getAll = async (req, res = response) => {
         .populate({
           path: "lineaArticulo",
           select: "-__v",
-          populate: {
-            path: "familia",
-            select: "-__v",
-          },
         })
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
@@ -46,14 +48,11 @@ const getAll = async (req, res = response) => {
       .populate({
         path: "lineaArticulo",
         select: "-__v",
-        populate: {
-          path: "familia",
-          select: "-__v",
-        },
       })
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
       .sort({ orderBy: direction });
+
     res.json(data);
   }
 };
@@ -64,10 +63,6 @@ const getById = async (req, res = response) => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -156,10 +151,6 @@ const existeArticuloByCodigoBarra = async (codigoBarra = "") => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");

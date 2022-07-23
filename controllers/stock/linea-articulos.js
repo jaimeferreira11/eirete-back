@@ -21,7 +21,6 @@ const getAll = async (req, res = response) => {
     const [total, data] = await Promise.all([
       LineaArticulo.countDocuments(query),
       LineaArticulo.find(query)
-        .populate("familia", "descripcion")
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ orderBy: direction }),
@@ -32,9 +31,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query)
-      .populate("familia", "descripcion")
-      .sort({ orderBy: direction });
+    const data = await LineaArticulo.find(query).sort({ orderBy: direction });
     res.json(data);
   }
 };

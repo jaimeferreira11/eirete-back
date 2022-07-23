@@ -11,17 +11,16 @@ const {
   inactivate,
   changeStatus,
 } = require("../controllers/stock/linea-articulos");
-const {
-  existeLineaArticuloPorId,
-  existeFamiliaPorId,
-} = require("../helpers/db-validators");
+const { existeLineaArticuloPorId } = require("../helpers/db-validators");
 
 const router = Router();
 
-//  Obtener todas las categorias - publico
+/**
+ * {{url}}/api/linea-articulos
+ */
+
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id - publico
 router.get(
   "/:id",
   [
@@ -33,28 +32,24 @@ router.get(
   getById
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
 router.post(
   "/",
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
 router.put(
   "/:id",
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("id").custom(existeLineaArticuloPorId),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   update
