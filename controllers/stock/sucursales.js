@@ -10,8 +10,10 @@ const getAll = async (req, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
 
   let query = { estado };
@@ -26,7 +28,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -36,7 +39,8 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Sucursal.find(query)
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
@@ -69,10 +73,15 @@ const add = async (req, res = response) => {
       });
     }
 
-    // punto de expedicion
-    if (await Sucursal.findOne({ establecimiento: req.body.establecimiento })) {
+    // establecimiento y punto de expedicion
+    if (
+      await Sucursal.findOne({
+        timbrado: req.body.timbrado,
+        establecimiento: req.body.establecimiento,
+      })
+    ) {
       return res.status(400).json({
-        msg: `El establecimiento ${req.body.establecimiento}, ya está registrado`,
+        msg: `El establecimiento "${req.body.establecimiento}" ya está registrado para el timbrado "${req.body.timbrado}"`,
       });
     }
 
@@ -104,24 +113,39 @@ const update = async (req, res = response) => {
   const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
     req.body;
 
-  // punto de expedicion
-  const model = await Sucursal.findOne({
-    establecimiento: req.body.establecimiento,
-  });
-  if (model && model._id != id) {
-    return res.status(400).json({
-      msg: `El establecimiento ${req.body.establecimiento}, ya está registrado en la sucursal ${model.descripcion}`,
+  try {
+    // punto de expedicion y timbrado
+    const model = await Sucursal.findOne({
+      establecimiento: req.body.establecimiento,
+      timbrado: req.body.timbrado,
+    });
+    if (model && model._id != id) {
+      return res.status(400).json({
+        msg: `El establecimiento ${req.body.establecimiento}, ya está registrado en la sucursal ${model.descripcion} para el timbrado ${req.body.timbrado}`,
+      });
+    }
+
+    // verificar descripcion
+    data.descripcion = data.descripcion.toUpperCase();
+    const modelDesc = await Sucursal.findOne({ descripcion: data.descripcion });
+    if (modelDesc && modelDesc._id != id) {
+      return res.status(400).json({
+        msg: `La descripcion ${modelDesc}, ya está registrado en otra sucursal`,
+      });
+    }
+
+    data.usuarioModif = req.usuario._id;
+    data.fechaModif = Date.now();
+
+    const newModel = await Sucursal.findByIdAndUpdate(id, data, { new: true });
+
+    res.json(newModel);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: `Hable con el administrador`,
     });
   }
-
-  data.descripcion = data.descripcion.toUpperCase();
-  data.usuarioModif = req.usuario._id;
-
-  data.fechaModif = Date.now();
-
-  const newModel = await Sucursal.findByIdAndUpdate(id, data, { new: true });
-
-  res.json(newModel);
 };
 
 const inactivate = async (req, res = response) => {

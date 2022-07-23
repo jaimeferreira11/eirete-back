@@ -1,6 +1,8 @@
 const { response, request } = require("express");
 const bcryptjs = require("bcryptjs");
 
+const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+
 const { Usuario } = require("../../models");
 
 const getById = async (req, res = response) => {
@@ -21,14 +23,23 @@ const usuariosGet = async (req = request, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
-  let query = { estado };
+
+  let query = {};
+
+  if (estado && estado !== "all") query.estado = estado;
 
   if (search) {
-    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    const regex = {
+      $regex: ".*" + skipAcentAndSpace(search) + ".*",
+      $options: "i",
+    };
     query = {
+      ...query,
       $or: [{ nombreApellido: regex }, { username: regex }],
       $and: [{ estado }],
     };
@@ -41,7 +52,8 @@ const usuariosGet = async (req = request, res = response) => {
         .populate("perfiles", "descripcion")
         .populate("sucursal", "descripcion")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
     res.json({
       total,
@@ -50,7 +62,8 @@ const usuariosGet = async (req = request, res = response) => {
   } else {
     const data = await Usuario.find(query)
       .populate("perfiles", "descripcion")
-      .populate("sucursal", "descripcion");
+      .populate("sucursal", "descripcion")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };

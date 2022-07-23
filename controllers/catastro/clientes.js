@@ -3,6 +3,8 @@ const { Cliente, Persona } = require("../../models");
 const { updatePersona } = require("./personas");
 const ObjectId = require("mongoose").Types.ObjectId;
 
+const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
@@ -10,8 +12,47 @@ const getAll = async (req, res = response) => {
     paginado = true,
     orderBy = "persona.nombreApellido",
     direction = -1,
+    estado = true,
+    search = "",
   } = req.query;
-  const query = { estado: true };
+
+  let query = {};
+
+  if (estado && estado !== "all") query.estado = estado;
+
+  if (search) {
+    const regex = {
+      $regex: ".*" + skipAcentAndSpace(search) + ".*",
+      $options: "i",
+    };
+
+    const results = await Cliente.find(query)
+      .populate("persona", "-__v")
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction })
+      .then(async (customers) => {
+        let clientes = [];
+
+        await Promise.all(
+          customers.map(async (d) => {
+            const persona = await Persona.findOne({
+              _id: d.persona,
+              $or: [{ nombreApellido: regex }, { nroDoc: regex }],
+            });
+            if (persona) clientes.push(d);
+          })
+        );
+
+        console.log("clientes encontrados", clientes.length);
+        return clientes;
+      });
+
+    return res.json({
+      total: results.length,
+      data: results,
+    });
+  }
 
   if (paginado) {
     const [total, data] = await Promise.all([
@@ -94,6 +135,7 @@ const add = async (req, res = response) => {
     // Generar la data a guardar
     let personaData = req.body.persona;
     personaData.usuarioAlta = req.usuario._id;
+    personaData.nombreApellido = req.body.persona.nombreApellido.toUpperCase();
 
     let idCliente;
     if (!personaData._id) {
@@ -120,7 +162,6 @@ const add = async (req, res = response) => {
     const persona = await Persona.findOne({ nroDoc: personaData.nroDoc });
     if (idCliente) {
       // actualizar
-      console.log("Actualizando");
       const clienteData = {
         _id: idCliente,
         ...req.body,

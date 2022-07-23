@@ -11,7 +11,10 @@ const {
   inactivate,
   changeStatus,
 } = require("../controllers/stock/sucursales");
-const { existeSucursalPorId } = require("../helpers/db-validators");
+const {
+  existeSucursalPorId,
+  existeSucursalPorDescripcion,
+} = require("../helpers/db-validators");
 
 const router = Router();
 
@@ -39,6 +42,7 @@ router.post(
   "/",
   [
     validarJWT,
+    check("descripcion").custom(existeSucursalPorDescripcion),
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
     check("direccion", "La direccion es obligatoria").not().isEmpty(),
     check("ciudad", "La ciudad es obligatoria").not().isEmpty(),

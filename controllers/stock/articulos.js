@@ -8,15 +8,14 @@ const getAll = async (req, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-<<<<<<< Updated upstream
-    search,
-=======
-    search = "",
     familia,
     linea,
->>>>>>> Stashed changes
+    search = "",
   } = req.query;
+
   const query = { estado };
 
   if (search)
@@ -41,7 +40,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -59,10 +59,6 @@ const getAll = async (req, res = response) => {
         },
       })
       .populate("usuarioAlta", "username")
-<<<<<<< Updated upstream
-      .populate("usuarioModif", "username");
-    res.json(data);
-=======
       .populate("usuarioModif", "username")
       .sort({ orderBy: direction })
       .then(async (list) => {
@@ -85,7 +81,6 @@ const getAll = async (req, res = response) => {
         console.log("Articulos devueltos: ", articulos.length);
         res.json(articulos);
       });
->>>>>>> Stashed changes
   }
 };
 

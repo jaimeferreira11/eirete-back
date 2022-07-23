@@ -6,9 +6,12 @@ const getAll = async (req, res = response) => {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
+
   const query = { estado };
 
   if (search)
@@ -20,7 +23,8 @@ const getAll = async (req, res = response) => {
       LineaArticulo.find(query)
         .populate("familia", "descripcion")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -28,10 +32,9 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query).populate(
-      "familia",
-      "descripcion"
-    );
+    const data = await LineaArticulo.find(query)
+      .populate("familia", "descripcion")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };

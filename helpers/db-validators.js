@@ -67,6 +67,14 @@ const existeSucursalPorId = async (id) => {
   }
 };
 
+const existeSucursalPorDescripcion = async (descripcion) => {
+  // Verificar si el correo existe
+  const existe = await Sucursal.findOne({ descripcion });
+  if (existe) {
+    throw new Error(`La sucursal ${descripcion} ya existe`);
+  }
+};
+
 /**
  * Personas
  */
@@ -277,6 +285,7 @@ module.exports = {
   existeUsuarioPorId,
   existePerfilPorId,
   existeSucursalPorId,
+  existeSucursalPorDescripcion,
   coleccionesPermitidas,
   existePersonaPorId,
   nroDocExiste,

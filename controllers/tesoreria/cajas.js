@@ -1,25 +1,33 @@
 const { response } = require("express");
 const { Caja } = require("../../models");
+const {
+  skipAcentAndSpace
+} = require("../../helpers/strings-helper");
+
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
+    orderBy = "descripcion",
+    direction = -1,
     estado = true,
-    search,
+    search = "",
   } = req.query;
+
   let query = { estado };
 
   if (search) {
-    const regex = { $regex: ".*" + search + ".*", $options: "i" };
+    const regex = { $regex: ".*" + skipAcentAndSpace(search) + ".*", $options: "i" };
     query = {
       $or: [{ descripcion: regex }],
       $and: [{ estado: true }],
     };
 
-    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
   }
+
+  console.log(query);
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
@@ -29,7 +37,8 @@ const getAll = async (req, res = response) => {
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
-        .limit(Number(limite)),
+        .limit(Number(limite))
+        .sort({ orderBy: direction }),
     ]);
 
     res.json({
@@ -40,7 +49,8 @@ const getAll = async (req, res = response) => {
     const data = await Caja.find(query)
       .populate("sucursal", "descripcion")
       .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
     res.json(data);
   }
 };
