@@ -10,6 +10,7 @@ const {
   update,
   inactivate,
   changeStatus,
+  getByFamilia,
 } = require("../controllers/stock/linea-articulos");
 const {
   existeLineaArticuloPorId,
@@ -18,10 +19,12 @@ const {
 
 const router = Router();
 
-//  Obtener todas las categorias - publico
+/**
+ * {{url}}/api/linea-articulos
+ */
+
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id - publico
 router.get(
   "/:id",
   [
@@ -33,7 +36,17 @@ router.get(
   getById
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
+router.get(
+  "/familia/:id",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeFamiliaPorId),
+    validarCampos,
+  ],
+  getByFamilia
+);
+
 router.post(
   "/",
   [
@@ -46,7 +59,6 @@ router.post(
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
 router.put(
   "/:id",
   [

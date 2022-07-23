@@ -1,5 +1,6 @@
 const { response } = require("express");
-const { Articulo, Sucursal } = require("../../models");
+const { ObjectId } = require("mongoose").Types;
+const { Articulo, Sucursal, LineaArticulo } = require("../../models");
 const { addArticuloToSucursales } = require("./stock-sucursal");
 
 const getAll = async (req, res = response) => {
@@ -8,12 +9,22 @@ const getAll = async (req, res = response) => {
     desde = 0,
     paginado = true,
     estado = true,
+<<<<<<< Updated upstream
     search,
+=======
+    search = "",
+    familia,
+    linea,
+>>>>>>> Stashed changes
   } = req.query;
   const query = { estado };
 
   if (search)
     query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
+
+  if (linea) query.lineaArticulo = ObjectId(linea);
+
+  console.log(query);
 
   if (paginado === "true") {
     const [total, data] = await Promise.all([
@@ -38,7 +49,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await Articulo.find(query)
+    return await Articulo.find(query)
       .populate({
         path: "lineaArticulo",
         select: "-__v",
@@ -48,8 +59,33 @@ const getAll = async (req, res = response) => {
         },
       })
       .populate("usuarioAlta", "username")
+<<<<<<< Updated upstream
       .populate("usuarioModif", "username");
     res.json(data);
+=======
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction })
+      .then(async (list) => {
+        let articulos = [];
+        console.log("Cantidad de articulos encontrados", list.length);
+        await Promise.all(
+          list.map((a = Articulo) => {
+            if (!familia) {
+              console.log("Familia no encontrada");
+              articulos.push(a);
+            } else {
+              console.log(a.lineaArticulo.familia._id + " == " + familia);
+              if (a.lineaArticulo.familia._id == familia) {
+                console.log("Es de la misma familia, agregar....");
+                articulos.push(a);
+              }
+            }
+          })
+        );
+        console.log("Articulos devueltos: ", articulos.length);
+        res.json(articulos);
+      });
+>>>>>>> Stashed changes
   }
 };
 
