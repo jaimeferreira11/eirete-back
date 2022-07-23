@@ -11,7 +11,6 @@ const getAll = async (req, res = response) => {
     orderBy = "descripcion",
     direction = -1,
     estado = true,
-    familia,
     linea,
     search = "",
   } = req.query;
@@ -32,10 +31,6 @@ const getAll = async (req, res = response) => {
         .populate({
           path: "lineaArticulo",
           select: "-__v",
-          populate: {
-            path: "familia",
-            select: "-__v",
-          },
         })
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
@@ -49,38 +44,16 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    return await Articulo.find(query)
+    const data = await Articulo.find(query)
       .populate({
         path: "lineaArticulo",
         select: "-__v",
-        populate: {
-          path: "familia",
-          select: "-__v",
-        },
       })
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
-      .sort({ orderBy: direction })
-      .then(async (list) => {
-        let articulos = [];
-        console.log("Cantidad de articulos encontrados", list.length);
-        await Promise.all(
-          list.map((a = Articulo) => {
-            if (!familia) {
-              console.log("Familia no encontrada");
-              articulos.push(a);
-            } else {
-              console.log(a.lineaArticulo.familia._id + " == " + familia);
-              if (a.lineaArticulo.familia._id == familia) {
-                console.log("Es de la misma familia, agregar....");
-                articulos.push(a);
-              }
-            }
-          })
-        );
-        console.log("Articulos devueltos: ", articulos.length);
-        res.json(articulos);
-      });
+      .sort({ orderBy: direction });
+
+    res.json(data);
   }
 };
 
@@ -90,10 +63,6 @@ const getById = async (req, res = response) => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -182,10 +151,6 @@ const existeArticuloByCodigoBarra = async (codigoBarra = "") => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");

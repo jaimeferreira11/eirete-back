@@ -5,7 +5,7 @@ const { ArticuloSucursal, Sucursal, Articulo } = require("../../models");
 
 const getBySucursal = async (req, res = response) => {
   const { id } = req.params;
-  const { limite = 10, desde = 0, paginado = true, estado = true } = req.query;
+  const { limite = 10, desde = 0, paginado = true } = req.query;
   const query = {
     sucursal: id,
   };
@@ -23,10 +23,6 @@ const getBySucursal = async (req, res = response) => {
             populate: {
               path: "lineaArticulo",
               select: "-__v",
-              populate: {
-                path: "familia",
-                select: "-__v",
-              },
             },
           },
         })
@@ -44,10 +40,6 @@ const getBySucursal = async (req, res = response) => {
       .populate({
         path: "lineaArticulo",
         select: "-__v",
-        populate: {
-          path: "familia",
-          select: "-__v",
-        },
       })
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username");
@@ -56,48 +48,8 @@ const getBySucursal = async (req, res = response) => {
 };
 
 // FIXME: Mejorar la logica
-const getFamiliasBySucursal = async (req, res = response) => {
-  const { id } = req.params;
-  const { estado = true } = req.query;
-
-  return await ArticuloSucursal.find({ sucursal: id }).then(async (list) => {
-    let familias = [];
-
-    await Promise.all(
-      list.map(async (d = ArticuloSucursal) => {
-        await Promise.all(
-          d.articulos.map(async (a = Articulo) => {
-            await Articulo.findOne({
-              _id: a.articulo,
-              estado,
-            })
-              .populate({
-                path: "lineaArticulo",
-                select: "-__v",
-                populate: {
-                  path: "familia",
-                  select: "-__v",
-                },
-              })
-              .then((articulo) => {
-                if (!articulo) return;
-                const isFound = familias.some(
-                  (f) =>
-                    f.descripcion === articulo.lineaArticulo.familia.descripcion
-                );
-                if (!isFound) familias.push(articulo.lineaArticulo.familia);
-              });
-          })
-        );
-      })
-    );
-    res.json(familias);
-  });
-};
-
-// FIXME: Mejorar la logica
 const getLineasBySucursal = async (req, res = response) => {
-  const { id, idFamilia } = req.params;
+  const { id } = req.params;
   const { estado = true } = req.query;
 
   return await ArticuloSucursal.find({ sucursal: id }).then(async (list) => {
@@ -113,17 +65,8 @@ const getLineasBySucursal = async (req, res = response) => {
               .populate({
                 path: "lineaArticulo",
                 select: "-__v",
-                populate: {
-                  path: "familia",
-                  select: "_id",
-                },
               })
               .then((articulo) => {
-                if (
-                  !articulo ||
-                  articulo.lineaArticulo.familia._id != idFamilia
-                )
-                  return;
                 const isFound = lineas.some(
                   (l) => l.descripcion === articulo.lineaArticulo.descripcion
                 );
@@ -156,10 +99,6 @@ const getArticulosBySucursal = async (req, res = response) => {
               .populate({
                 path: "lineaArticulo",
                 select: "-__v",
-                populate: {
-                  path: "familia",
-                  select: "_id",
-                },
               })
               .then((articulo) => {
                 if (!articulo) return;
@@ -280,7 +219,6 @@ const addArticuloToSucursales = async (articulo, usuario_id) => {
 
 module.exports = {
   getBySucursal,
-  getFamiliasBySucursal,
   getLineasBySucursal,
   getArticulosBySucursal,
   updateArticuloSucursal,

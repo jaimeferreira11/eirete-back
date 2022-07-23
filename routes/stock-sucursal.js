@@ -5,7 +5,6 @@ const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
 const {
   getBySucursal,
-  getFamiliasBySucursal,
   getLineasBySucursal,
   getArticulosBySucursal,
   updateArticuloSucursal,
@@ -18,10 +17,9 @@ const {
 const router = Router();
 
 /**
- * {{url}}/api/articulos-sucursal
+ * {{url}}/api/stock
  */
 
-//  Obtener todas las categorias
 router.get(
   "/sucursal/:id",
   [
@@ -34,18 +32,7 @@ router.get(
 );
 
 router.get(
-  "/sucursal/:id/familias",
-  [
-    validarJWT,
-    check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeSucursalPorId),
-    validarCampos,
-  ],
-  getFamiliasBySucursal
-);
-
-router.get(
-  "/sucursal/:id/familia/:idFamilia/lineas",
+  "/sucursal/:id/lineas",
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
