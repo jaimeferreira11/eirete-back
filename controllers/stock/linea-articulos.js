@@ -1,23 +1,23 @@
-const { response } = require("express");
-const { LineaArticulo } = require("../../models");
+const { response } = require('express');
+const { LineaArticulo } = require('../../models');
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
-    orderBy = "descripcion",
+    orderBy = 'descripcion',
     direction = -1,
     estado = true,
-    search = "",
+    search = '',
   } = req.query;
 
   const query = { estado };
 
   if (search)
-    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
+    query.descripcion = { $regex: '.*' + search + '.*', $options: 'i' };
 
-  if (paginado === "true") {
+  if (paginado === 'true') {
     const [total, data] = await Promise.all([
       LineaArticulo.countDocuments(query),
       LineaArticulo.find(query)
@@ -39,8 +39,8 @@ const getAll = async (req, res = response) => {
 const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await LineaArticulo.findById(id).populate(
-    "familia",
-    "descripcion"
+    'familia',
+    'descripcion'
   );
 
   res.json(modelDB);
@@ -68,7 +68,7 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, ...data } = req.body;
+  const { ...data } = req.body;
 
   data.descripcion = data.descripcion.toUpperCase();
 
