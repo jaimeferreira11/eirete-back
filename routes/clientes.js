@@ -87,6 +87,9 @@ router.post(
     check("persona.tipoPersona", "No es un tipo persona válido")
       .optional()
       .isIn(["FISICA", "JURIDICA"]),
+    check("direcciones.*.direccion", "La direccion es obligatoria")
+      .not()
+      .isEmpty(),
     validarCampos,
   ],
   add
