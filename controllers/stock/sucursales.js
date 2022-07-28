@@ -110,7 +110,7 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
+  const { _id, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
     req.body;
 
   try {
