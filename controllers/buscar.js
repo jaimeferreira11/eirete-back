@@ -8,7 +8,6 @@ const {
   Persona,
   Articulo,
   LineaArticulo,
-  FamiliaArticulo,
   Sucursal,
   Ciudad,
 } = require("../models");
@@ -20,7 +19,6 @@ const coleccionesPermitidas = [
   "clientes",
   "sucursales",
   "linea-articulos",
-  "familia-articulos",
   "cajas",
   "ciudades",
 ];
@@ -205,10 +203,6 @@ const buscarArticulos = async (termino = "", res = response) => {
       .populate({
         path: "lineaArticulo",
         select: "-__v",
-        populate: {
-          path: "familia",
-          select: "-__v",
-        },
       })
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username");
@@ -226,10 +220,6 @@ const buscarArticulos = async (termino = "", res = response) => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -262,10 +252,7 @@ const buscarLineaArticulos = async (termino = "", res = response) => {
   const esMongoID = ObjectId.isValid(termino); // TRUE
 
   if (esMongoID) {
-    const data = await LineaArticulo.findById(termino).populate(
-      "familia",
-      "descripcion"
-    );
+    const data = await LineaArticulo.findById(termino);
 
     return res.json({
       data: data ? [data] : [],
@@ -274,28 +261,6 @@ const buscarLineaArticulos = async (termino = "", res = response) => {
 
   const regex = new RegExp(termino, "i");
   const lista = await LineaArticulo.find({
-    descripcion: regex,
-    estado: true,
-  }).populate("familia", "descripcion");
-
-  res.json({
-    data: lista ? [lista] : [],
-  });
-};
-
-const buscarFamiliaArticulos = async (termino = "", res = response) => {
-  const esMongoID = ObjectId.isValid(termino);
-
-  if (esMongoID) {
-    const data = await FamiliaArticulo.findById(termino);
-
-    return res.json({
-      data: data ? [data] : [],
-    });
-  }
-
-  const regex = new RegExp(termino, "i");
-  const lista = await FamiliaArticulo.find({
     descripcion: regex,
     estado: true,
   });
@@ -402,9 +367,6 @@ const buscar = (req, res = response) => {
       break;
     case "linea-articulos":
       buscarLineaArticulos(termino, res);
-      break;
-    case "familia-articulos":
-      buscarFamiliaArticulos(termino, res);
       break;
     case "sucursales":
       buscarSucursales(termino, res);
