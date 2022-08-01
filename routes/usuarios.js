@@ -29,6 +29,17 @@ const {
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api/usuarios:
+ *  get: 
+ *    summary: Obtém a lista de clientes
+ *    produces:
+ *      - application/json
+ *    responses:
+ *      '200': 
+ *        description: Clientes obtidos com sucesso 
+ */
 router.get("/", [validarJWT, validarCampos], usuariosGet);
 
 router.get(

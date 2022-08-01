@@ -1,8 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require("swagger-jsdoc");
+
 
 const { dbConnection } = require("../database/config");
+const swaggerDocumento = require('../swagger.json');
+
 
 class Server {
   constructor() {
@@ -10,6 +15,7 @@ class Server {
     this.port = process.env.PORT;
 
     this.paths = {
+      swagger: "/api-docs",
       auth: "/api/auth",
       buscar: "/api/buscar",
       perfiles: "/api/perfiles",
@@ -60,7 +66,13 @@ class Server {
     );
   }
 
+  
+
   routes() {
+
+    
+
+    this.app.use(this.paths.swagger,  swaggerUi.serve,  swaggerUi.setup(this.swaggerDocs()));
     this.app.use(this.paths.auth, require("../routes/auth"));
     this.app.use(this.paths.buscar, require("../routes/buscar"));
     this.app.use(this.paths.menus, require("../routes/menus"));
@@ -82,6 +94,39 @@ class Server {
     );
     this.app.use(this.paths.cajas, require("../routes/cajas"));
     this.app.use(this.paths.ciudades, require("../routes/ciudades"));
+  }
+
+
+  swaggerDocs() {
+    
+    const options = {
+      definition: {
+        openapi: "3.0.0",
+        info: {
+          title: "Proyecto Eirete",
+          version: "0.1.0",
+          description:
+            "Documentación de APIS",
+          license: {
+            name: "MIT",
+            url: "https://spdx.org/licenses/MIT.html",
+          },
+          contact: {
+            name: "Jaime Ferreira - Samuel Ruíz",
+            email: "jaimeferreira11@gmail.com, ssruiz6@gmail.com",
+          },
+        },
+        servers: [
+          {
+            url: "http://localhost:8080/api",
+          },
+        ],
+      },
+      basepath: "/",
+      apis: ["../routes/auth", "../routes/usuarios"],
+    };
+    
+   return swaggerJsdoc(options);
   }
 
   listen() {
