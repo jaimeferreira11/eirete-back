@@ -1,80 +1,71 @@
-const { Router } = require('express');
-const { check } = require('express-validator');
+const { Router } = require("express");
+const { check } = require("express-validator");
 
+const { validarCampos, validarJWT } = require("../middlewares");
 
-const { validarCampos, validarJWT } = require('../middlewares');
-
-
-const { login, googleSignin, validarTokenUsuario } = require('../controllers/seguridad/auth');
-
+const {
+  login,
+  googleSignin,
+  validarTokenUsuario,
+} = require("../controllers/seguridad/auth");
 
 const router = Router();
 
 /**
-@swagger
-   components:
-     schemas:
-       Book:
-         type: object
-         required:
-           - title
-           - author
-           - finished
-         properties:
-           id:
-             type: integer
-             description: The auto-generated id of the book.
-           title:
-             type: string
-             description: The title of your book.
-           author:
-             type: string
-             description: Who wrote the book?
-           finished:
-             type: boolean
-             description: Have you finished reading it?
-           createdAt:
-             type: string
-             format: date
-             description: The date of the record creation.
-         example:
-            title: The Pragmatic Programmer
-            author: Andy Hunt / Dave Thomas
-            finished: true
- */
-
-
-            /** 
-            @swagger
-            tags:
-              name: Books
-              description: API to manage your books.
-           */
-
-/**
  * @swagger
- * /customers:
- *  get: 
- *    description: Obtém a lista de clientes
+ * /auth/login:
+ *  post:
+ *    tags: ["Seguridad"]
+ *    summary: Autenticación del usuario
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: username
+ *        in: "query"
+ *        description: "Usuario a autenticarse"
+ *        required: true
+ *        type: "string"
+ *      - name: password
+ *        in: "query"
+ *        description: "Contraseña del usuario"
+ *        required: true
+ *        type: "string"
  *    responses:
- *      '200': 
- *        description: Clientes obtidos com sucesso 
+ *      '200':
+ *        description: Autenticación exitosa
+ *        schema:
+ *           properties:
+ *            usuario:
+ *              $ref: "#/definitions/Usuario"
+ *            token:
+ *              type: string
+ *            perfilActual:
+ *              $ref: "#/definitions/Perfil"
+ *      '401':
+ *        description: Credenciales inválidas
+ *      '400':
+ *        description: Parametros inválidos
  */
-router.post('/login', [
-    check('username', 'El username es obligatorio').not().isEmpty(),
-    check('password', 'La contraseña es obligatoria').not().isEmpty(),
-    validarCampos
-], login);
+router.post(
+  "/login",
+  [
+    check("username", "El username es obligatorio").not().isEmpty(),
+    check("password", "La contraseña es obligatoria").not().isEmpty(),
+    validarCampos,
+  ],
+  login
+);
 
 // no se usa
-router.post('/google', [
-    check('id_token', 'El id_token es necesario').not().isEmpty(),
-    validarCampos
-], googleSignin);
+router.post(
+  "/google",
+  [
+    check("id_token", "El id_token es necesario").not().isEmpty(),
+    validarCampos,
+  ],
+  googleSignin
+);
 
-
-router.get('/', [
-    validarJWT
-], validarTokenUsuario);
+router.get("/", [validarJWT], validarTokenUsuario);
 
 module.exports = router;
