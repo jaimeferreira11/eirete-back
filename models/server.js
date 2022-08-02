@@ -10,6 +10,7 @@ class Server {
     this.port = process.env.PORT;
 
     this.paths = {
+      swagger: "/api-docs",
       auth: "/api/auth",
       buscar: "/api/buscar",
       perfiles: "/api/perfiles",
@@ -85,6 +86,8 @@ class Server {
   }
 
   listen() {
+    require("../swagger-setup")(this.app);
+
     this.app.listen(this.port, () => {
       console.log("Servidor corriendo en puerto", this.port);
     });

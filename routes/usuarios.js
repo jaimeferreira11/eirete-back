@@ -29,14 +29,89 @@ const {
 
 const router = Router();
 
+/**
+ * @swagger
+ * /usuarios:
+ *  get:
+ *    tags: ["Seguridad"]
+ *    summary: Obtiene todos los usuarios
+ *    description: ""
+ *    produces: ["application/json"]
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          type: array
+ *          items:
+ *            $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get("/", [validarJWT, validarCampos], usuariosGet);
 
+/**
+ * @swagger
+ * /usuarios/{usuarioId}:
+ *  get:
+ *    tags: ["Seguridad"]
+ *    summary: Obtiene usuario por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: usuarioId
+ *        in: "path"
+ *        description: "Id del usuario"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/:id",
   [validarJWT, check("id", "No es un ID válido").isMongoId(), validarCampos],
   getById
 );
 
+/**
+ * @swagger
+ * /usuarios/username/{username}:
+ *  get:
+ *    tags: ["Seguridad"]
+ *    summary: Obtiene usuario por el username
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: username
+ *        in: "path"
+ *        description: "username"
+ *        required: true
+ *        type: string
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/username/:username",
   [
@@ -47,6 +122,39 @@ router.get(
   usuarioByUsername
 );
 
+/**
+ * @swagger
+ * /usuarios/{usuarioId}:
+ *  put:
+ *    tags: ["Seguridad"]
+ *    summary: Actualizar un usuario
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: usuarioId
+ *        in: "path"
+ *        description: "Id del usuario"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/:id",
   [
@@ -65,6 +173,33 @@ router.put(
   usuariosPut
 );
 
+/**
+ * @swagger
+ * /usuarios:
+ *  post:
+ *    tags: ["Seguridad"]
+ *    summary: Crear un nuevo usuario
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.post(
   "/",
   [
@@ -90,6 +225,38 @@ router.post(
   usuariosPost
 );
 
+/**
+ * @swagger
+ * /usuarios/change-status/{usuarioId}/{estado}:
+ *  put:
+ *    tags: ["Seguridad"]
+ *    summary: Cambiar el estado de un usuario
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: usuarioId
+ *        in: "path"
+ *        description: "Id del usuario"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estado
+ *        in: "path"
+ *        description: "Nuevo estado del usuario"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Usuario"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/change-status/:id/:status",
   [
