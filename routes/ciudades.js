@@ -18,10 +18,57 @@ const router = Router();
  * {{url}}/api/ciudades
  */
 
-//  Obtener todas las categorias - publico
+/**
+ * @swagger
+ * /ciudades:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene todas las ciudades
+ *    description: ""
+ *    produces: ["application/json"]
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          type: array
+ *          items:
+ *            $ref: "#/definitions/Ciudad"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id - publico
+/**
+ * @swagger
+ * /ciudades/{ciudadId}:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene ciudad por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: ciudadId
+ *        in: "path"
+ *        description: "Id de la ciudad"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/:id",
   [
@@ -33,7 +80,33 @@ router.get(
   getById
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
+/**
+ * @swagger
+ * /ciudades:
+ *  post:
+ *    tags: ["Catastro"]
+ *    summary: Crear una nueva ciudad
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.post(
   "/",
   [
@@ -44,7 +117,39 @@ router.post(
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
+/**
+ * @swagger
+ * /ciudades/{ciudadId}:
+ *  put:
+ *    tags: ["Catastro"]
+ *    summary: Actualizar una ciudad
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: ciudadId
+ *        in: "path"
+ *        description: "Id de la ciudad"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/:id",
   [
@@ -57,6 +162,38 @@ router.put(
   update
 );
 
+/**
+ * @swagger
+ * /ciudades/change-status/{ciudadId}/{estado}:
+ *  put:
+ *    tags: ["Catastro"]
+ *    summary: Cambiar el estado de una ciudad
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: ciudadId
+ *        in: "path"
+ *        description: "Id de la ciudad"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estado
+ *        in: "path"
+ *        description: "Nuevo estado de la ciudad"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Ciudad"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/change-status/:id/:status",
   [
