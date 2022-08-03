@@ -38,10 +38,7 @@ const getAll = async (req, res = response) => {
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await LineaArticulo.findById(id).populate(
-    "familia",
-    "descripcion"
-  );
+  const modelDB = await LineaArticulo.findById(id);
 
   res.json(modelDB);
 };
@@ -68,7 +65,7 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, ...data } = req.body;
+  const { ...data } = req.body;
 
   data.descripcion = data.descripcion.toUpperCase();
 

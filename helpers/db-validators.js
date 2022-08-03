@@ -7,7 +7,6 @@ const {
   Proveedor,
   Articulo,
   LineaArticulo,
-  FamiliaArticulo,
   Sucursal,
   Caja,
   Ciudad,
@@ -200,17 +199,6 @@ const existeLineaArticuloPorId = async (id) => {
 };
 
 /**
- * Familias
- */
-const existeFamiliaPorId = async (id) => {
-  // Verificar si el correo existe
-  const existe = await FamiliaArticulo.findById(id);
-  if (!existe) {
-    throw new Error(`El id no existe ${id}`);
-  }
-};
-
-/**
  * Cajas
  */
 const existeCajaPorId = async (id) => {
@@ -300,7 +288,6 @@ module.exports = {
   codArticuloExiste,
   existeArticuloPorDescripcion,
   existeLineaArticuloPorId,
-  existeFamiliaPorId,
   existeCajaPorId,
   existeCiudadPorId,
 };

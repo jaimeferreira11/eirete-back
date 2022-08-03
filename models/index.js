@@ -13,7 +13,6 @@ const Ciudad = require("./catastro/ciudades");
 //Stock
 const Sucursal = require("./stock/sucursal");
 const LineaArticulo = require("./stock/linea-articulo");
-const FamiliaArticulo = require("./stock/familia-articulo");
 const Articulo = require("./stock/articulo");
 const ArticuloSucursal = require("./stock/articulo-sucursal");
 
@@ -36,7 +35,6 @@ module.exports = {
   Persona,
   Sucursal,
   LineaArticulo,
-  FamiliaArticulo,
   Articulo,
   ArticuloSucursal,
   Pedido,

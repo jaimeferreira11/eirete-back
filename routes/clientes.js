@@ -22,15 +22,60 @@ const {
 const router = Router();
 
 /**
- * {{url}}/api/categorias
+ * {{url}}/api/clientes
  */
 
-//  Obtener todas las categorias - publico
+/**
+ * @swagger
+ * /clientes:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene todos los clientes
+ *    description: ""
+ *    produces: ["application/json"]
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          type: array
+ *          items:
+ *            $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get("/", [validarJWT, validarCampos], getAll);
 
-//  Obtener todas las categorias - publico
-
-// Obtener una categoria por id - publico
+/**
+ * @swagger
+ * /clientes/{clienteId}:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene cliente por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: clienteId
+ *        in: "path"
+ *        description: "Id del cliente"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/:id",
   [
@@ -42,6 +87,33 @@ router.get(
   getById
 );
 
+/**
+ * @swagger
+ * /clientes/search/persona/{personaId}:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene cliente por id de la persona
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: personaId
+ *        in: "path"
+ *        description: "Id de la persona"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Persona"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/search/persona/:id",
   [
@@ -52,6 +124,32 @@ router.get(
   getByPersonaId
 );
 
+/**
+ * @swagger
+ * /clientes/search/persona/nrodoc/{doc}:
+ *  get:
+ *    tags: ["Catastro"]
+ *    summary: Obtiene cliente por numero de documento de la persona
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: doc
+ *        in: "path"
+ *        description: "Nro documento"
+ *        required: true
+ *        type: string
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Persona"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/search/persona/nrodoc/:doc",
   [
@@ -65,7 +163,33 @@ router.get(
   getByPersonaDoc
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
+/**
+ * @swagger
+ * /clientes:
+ *  post:
+ *    tags: ["Catastro"]
+ *    summary: Crear un nuevo cliente
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.post(
   "/",
   [
@@ -87,12 +211,47 @@ router.post(
     check("persona.tipoPersona", "No es un tipo persona válido")
       .optional()
       .isIn(["FISICA", "JURIDICA"]),
+    check("direcciones.*.direccion", "La direccion es obligatoria")
+      .not()
+      .isEmpty(),
     validarCampos,
   ],
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
+/**
+ * @swagger
+ * /clientes/{clienteId}:
+ *  put:
+ *    tags: ["Catastro"]
+ *    summary: Actualizar un cliente
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: clienteId
+ *        in: "path"
+ *        description: "Id del cliente"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/:id",
   [
@@ -121,6 +280,38 @@ router.put(
   update
 );
 
+/**
+ * @swagger
+ * /clientes/change-status/{clienteId}/{estado}:
+ *  put:
+ *    tags: ["Catastro"]
+ *    summary: Cambiar el estado de un cliente
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: clienteId
+ *        in: "path"
+ *        description: "Id del cliente"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estado
+ *        in: "path"
+ *        description: "Nuevo estado del cliente"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/change-status/:id/:status",
   [

@@ -132,10 +132,22 @@ const add = async (req, res = response) => {
         });
       }
     }
+
     // Generar la data a guardar
     let personaData = req.body.persona;
     personaData.usuarioAlta = req.usuario._id;
     personaData.nombreApellido = req.body.persona.nombreApellido.toUpperCase();
+
+    console.log(req.body.persona.nroDoc.toUpperCase());
+    // buscar si ya existe un cliente con esa persona
+    const personaClienteDB = await Persona.findOne({
+      nroDoc: req.body.persona.nroDoc.toUpperCase(),
+    });
+    if (personaClienteDB) {
+      console.log("Encontro la persona", personaClienteDB._id);
+      // Verificar si la persona existe
+      personaData._id = personaClienteDB._id;
+    }
 
     let idCliente;
     if (!personaData._id) {
