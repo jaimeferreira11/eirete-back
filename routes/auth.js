@@ -20,16 +20,13 @@ const router = Router();
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: username
- *        in: "query"
- *        description: "Usuario a autenticarse"
+ *      - name: body
+ *        in: "body"
+ *        description: "Credenciales"
  *        required: true
- *        type: "string"
- *      - name: password
- *        in: "query"
- *        description: "Contraseña del usuario"
- *        required: true
- *        type: "string"
+ *        schema:
+ *          $ref: "#/definitions/UserCredencials"
+ *
  *    responses:
  *      '200':
  *        description: Autenticación exitosa
