@@ -12,15 +12,15 @@ const swaggerDefinition = {
   host: "localhost:8080",
   basePath: "/api",
   securityDefinitions: {
-    BasicAuth: {
-      type: "basic",
-    },
-    ApiKeyAuth: {
+    bearerAuth: {
       type: "apiKey",
-      in: "header",
       name: "x-token",
+      scheme: "bearer",
+      in: "header",
     },
   },
+  security: [{ bearerAuth: [] }],
+
   tags: [
     {
       name: "Seguridad",
