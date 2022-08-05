@@ -214,7 +214,7 @@ const getArticulosByQuery = async (req, res = response) => {
 
   const data = await Articulo.find(query)
     .select('-__v -usuarioAlta -fechaAlta')
-    .lean();
+    .populate('lineaArticulo', '_id');
 
   let lineasAgregadas = {};
   const lineasConArticulos = await data.reduce(async (prev, art) => {
