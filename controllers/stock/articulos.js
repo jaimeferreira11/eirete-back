@@ -1,39 +1,40 @@
-const { response } = require("express");
-const { ObjectId } = require("mongoose").Types;
-const { Articulo, Sucursal, LineaArticulo } = require("../../models");
-const { addArticuloToSucursales } = require("./stock-sucursal");
+const { response } = require('express');
+const { ObjectId } = require('mongoose').Types;
+const { Articulo, Sucursal, LineaArticulo } = require('../../models');
+const { addArticuloToSucursales } = require('./stock-sucursal');
+const { getById: getLineaById } = require('./linea-articulos');
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
-    orderBy = "descripcion",
+    orderBy = 'descripcion',
     direction = -1,
     estado = true,
     linea,
-    search = "",
+    search = '',
   } = req.query;
 
   const query = { estado };
 
   if (search)
-    query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
+    query.descripcion = { $regex: '.*' + search + '.*', $options: 'i' };
 
   if (linea) query.lineaArticulo = ObjectId(linea);
 
   console.log(query);
 
-  if (paginado === "true") {
+  if (paginado === 'true') {
     const [total, data] = await Promise.all([
       Articulo.countDocuments(query),
       Articulo.find(query)
         .populate({
-          path: "lineaArticulo",
-          select: "-__v",
+          path: 'lineaArticulo',
+          select: '-__v',
         })
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ orderBy: direction }),
@@ -46,11 +47,11 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Articulo.find(query)
       .populate({
-        path: "lineaArticulo",
-        select: "-__v",
+        path: 'lineaArticulo',
+        select: '-__v',
       })
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .sort({ orderBy: direction });
 
     res.json(data);
@@ -61,11 +62,11 @@ const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Articulo.findById(id)
     .populate({
-      path: "lineaArticulo",
-      select: "-__v",
+      path: 'lineaArticulo',
+      select: '-__v',
     })
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   res.json(modelDB);
 };
@@ -134,7 +135,7 @@ const update = async (req, res = response) => {
     $or: [{ descripcion: data.descripcion }, { codigoBarra: data.codigoBarra }],
   });
 
-  console.log("existe", existe);
+  console.log('existe', existe);
   if (existe) {
     return res.status(400).json({
       msg: `Ya existe el articulo ese codigoBarra o descripcion: ${data.codigoBarra} - ${data.descripcion}`,
@@ -146,14 +147,14 @@ const update = async (req, res = response) => {
   res.json(newModel);
 };
 
-const existeArticuloByCodigoBarra = async (codigoBarra = "") => {
+const existeArticuloByCodigoBarra = async (codigoBarra = '') => {
   return await Articulo.findOne({ codigoBarra })
     .populate({
-      path: "lineaArticulo",
-      select: "-__v",
+      path: 'lineaArticulo',
+      select: '-__v',
     })
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 };
 
 const addArticulo = async (newArticulo = Articulo, usuario_id = null) => {
@@ -169,7 +170,7 @@ const addArticulo = async (newArticulo = Articulo, usuario_id = null) => {
 
     return await newArticulo.save();
   } catch (error) {
-    console.log("Error al agregar el articulo", error);
+    console.log('Error al agregar el articulo', error);
     throw error;
   }
 };
@@ -186,7 +187,7 @@ const updateArticulo = async (
     data.descripcion = data.descripcion.toUpperCase();
     return await Articulo.findByIdAndUpdate(data._id, data, { new: true });
   } catch (error) {
-    console.log("Error al actualizar el articulo", error);
+    console.log('Error al actualizar el articulo', error);
     throw error;
   }
 };
@@ -202,6 +203,43 @@ const changeStatus = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const getArticulosByQuery = async (req, res = response) => {
+  const { search } = req.query;
+
+  if (!search) return res.json([]);
+
+  const query = {
+    descripcion: { $regex: '.*' + search + '.*', $options: 'i' },
+  };
+
+  const data = await Articulo.find(query)
+    .select('-__v -usuarioAlta -fechaAlta')
+    .populate('lineaArticulo', '_id');
+
+  let lineasAgregadas = {};
+  const lineasConArticulos = await data.reduce(async (prev, art) => {
+    const currentMemoValue = await prev;
+
+    if (lineasAgregadas[art.lineaArticulo]) {
+      const index = lineasAgregadas[art.lineaArticulo] - 1;
+      currentMemoValue[index].articulos = [
+        ...currentMemoValue[index].articulos,
+        art,
+      ];
+      return prev;
+    } else {
+      const linea = await LineaArticulo.findById(art.lineaArticulo)
+        .select('_id descripcion')
+        .lean();
+      lineasAgregadas[art.lineaArticulo] = currentMemoValue.length + 1;
+
+      return [...currentMemoValue, { ...linea, articulos: [art] }];
+    }
+  }, []);
+
+  res.json(lineasConArticulos);
+};
+
 module.exports = {
   add,
   getAll,
@@ -212,4 +250,5 @@ module.exports = {
   updateArticulo,
   existeArticuloByCodigoBarra,
   changeStatus,
+  getArticulosByQuery,
 };
