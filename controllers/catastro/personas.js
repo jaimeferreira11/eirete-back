@@ -128,10 +128,11 @@ const addPersona = async (newPersona = Persona, usuario_id = null) => {
 const updatePersona = async (personaUpdated = Persona, usuario_id = null) => {
   try {
     const { usuarioAlta, fechaAlta, nroDoc, tipoDoc, ...data } = personaUpdated;
+
     console.log(`Actualizando persona: ${nroDoc}`);
     data.usuarioModif = usuario_id;
     data.fechaModif = Date.now();
-    data.nombreApellido = data.nombreApellido.toUpperCase();
+    data.nombreApellido = personaUpdated.nombreApellido.toUpperCase();
     return await Persona.findByIdAndUpdate(data._id, data, { new: true });
   } catch (error) {
     console.log("Error al actualizar la persona", error);
