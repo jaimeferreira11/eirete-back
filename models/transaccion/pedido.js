@@ -7,7 +7,7 @@ const PedidoCounterSchema = Schema({
 
 const pedidoCounterColleccion = model("pedidoCounter", PedidoCounterSchema);
 
-const pedidoDetalle = new Schema({
+const PedidoDetalle = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
     ref: "Articulo",
@@ -71,7 +71,7 @@ const direccionEnvio = new Schema({
 const PedidoSchema = new Schema({
   nro: {
     type: Number,
-    required: [true, "El nro de pedido es obligatorio"],
+    default: 1,
     unique: true,
   },
   cliente: {
@@ -116,8 +116,8 @@ const PedidoSchema = new Schema({
   tipoPedido: {
     type: String,
     required: true,
-    default: "CAJA",
-    emun: ["CAJA", "DELIVERY"],
+    default: "REGULAR",
+    emun: ["REGULAR", "DELIVERY"],
   },
   estadoDelivery: {
     type: String,
@@ -130,7 +130,7 @@ const PedidoSchema = new Schema({
     type: String,
   },
   detalles: {
-    type: [pedidoDetalle],
+    type: [PedidoDetalle],
     default: [],
     required: [true, "Los detalles son obligatorios"],
   },
@@ -142,7 +142,7 @@ const PedidoSchema = new Schema({
     type: Number,
     required: [true, "El importe es obligatorio"],
   },
-  montoPagado: {
+  montoRecibido: {
     type: Number,
   },
   vuelto: {
@@ -170,11 +170,10 @@ const PedidoSchema = new Schema({
 
 PedidoSchema.plugin(diffHistory.plugin);
 
-const Pedido = model("Pedido", PedidoSchema);
-
 PedidoSchema.pre("save", async function (next) {
   let doc = this;
 
+  console.log("Pre save Pedido");
   let counterDoc = await pedidoCounterColleccion.findOne();
   if (!counterDoc) {
     counterDoc = new pedidoCounterColleccion({ seq: 1 });
@@ -182,12 +181,16 @@ PedidoSchema.pre("save", async function (next) {
     counterDoc.seq++;
   }
   doc.nro = counterDoc.seq;
+  console.log(doc.nro);
   counterDoc.save();
 
   next();
 });
 
+const Pedido = model("Pedido", PedidoSchema);
+
 module.exports = {
   PedidoSchema,
   Pedido,
+  PedidoDetalle,
 };

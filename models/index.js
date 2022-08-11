@@ -17,7 +17,7 @@ const Articulo = require("./stock/articulo");
 const ArticuloSucursal = require("./stock/articulo-sucursal");
 
 // transaccion
-const { Pedido, PedidoSchema } = require("./transaccion/pedido");
+const { Pedido, PedidoSchema, PedidoDetalle } = require("./transaccion/pedido");
 
 // tesoreria
 const Caja = require("./tesoreria/caja");
@@ -39,6 +39,7 @@ module.exports = {
   ArticuloSucursal,
   Pedido,
   PedidoSchema,
+  PedidoDetalle,
   Caja,
   Ciudad,
 };
