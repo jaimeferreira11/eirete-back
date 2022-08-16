@@ -90,9 +90,9 @@ const getArticulosBySucursal = async (req, res = response) => {
     await Promise.all(
       list.map(async (d = ArticuloSucursal) => {
         await Promise.all(
-          d.articulos.map(async (a = Articulo) => {
+          d.articulos.map(async (articuloStock) => {
             await Articulo.findOne({
-              _id: a.articulo,
+              _id: articuloStock.articulo,
               estado,
               lineaArticulo: idLinea,
             })
@@ -105,7 +105,8 @@ const getArticulosBySucursal = async (req, res = response) => {
                 const isFound = articulos.some(
                   (art) => art._id == articulo._id
                 );
-                if (!isFound) articulos.push(articulo);
+                articuloStock.articulo = articulo;
+                if (!isFound) articulos.push(articuloStock);
               });
           })
         );
