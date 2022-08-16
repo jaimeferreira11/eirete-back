@@ -106,14 +106,14 @@ const existeClientePorId = async (id) => {
 
 const existeClientePorDoc = async (nroDoc = "") => {
   const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
-  if (persona) {
-    // Verificar si la persona existe como cliente
-    const existe = await Cliente.findOne({
-      persona: new ObjectId(persona._id),
-    });
-    if (existe) {
-      throw new Error(`Ya existe el cliente con doc: ${nroDoc}`);
-    }
+  if (!persona)
+    throw new Error(`No existe el persona ni cliente con doc: ${nroDoc}`);
+  // Verificar si la persona existe como cliente
+  const existe = await Cliente.findOne({
+    persona: new ObjectId(persona._id),
+  });
+  if (!existe) {
+    throw new Error(`No existe el cliente con doc: ${nroDoc}`);
   }
 };
 

@@ -30,7 +30,7 @@ const getAll = async (req, res = response) => {
       .populate("persona", "-__v")
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
-      .sort({ orderBy: direction })
+      .sort({ [orderBy]: direction })
       .then(async (customers) => {
         let clientes = [];
 
@@ -63,7 +63,7 @@ const getAll = async (req, res = response) => {
         .populate("usuarioModif", "username")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({

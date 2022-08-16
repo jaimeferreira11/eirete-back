@@ -14,9 +14,7 @@ const {
 } = require("../controllers/catastro/clientes");
 const {
   existeClientePorId,
-  existeClientePorDoc,
   existePersonaPorId,
-  nroDocExiste,
 } = require("../helpers/db-validators");
 
 const router = Router();
@@ -198,7 +196,6 @@ router.post(
     check("persona.nroDoc", "El documento debe de al menos 6 digitos").isLength(
       { min: 6 }
     ),
-    // check('persona.nroDoc').custom(existeClientePorDoc), // va actualizar si existe
     check("persona.nombreApellido", "El nombre es obligatoria").not().isEmpty(),
     check(
       "persona.nombreApellido",

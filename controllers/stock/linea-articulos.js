@@ -23,7 +23,7 @@ const getAll = async (req, res = response) => {
       LineaArticulo.find(query)
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({
@@ -31,7 +31,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query).sort({ orderBy: direction });
+    const data = await LineaArticulo.find(query).sort({ [orderBy]: direction });
     res.json(data);
   }
 };

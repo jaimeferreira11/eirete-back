@@ -90,9 +90,9 @@ const getArticulosBySucursal = async (req, res = response) => {
     await Promise.all(
       list.map(async (d = ArticuloSucursal) => {
         await Promise.all(
-          d.articulos.map(async (a = Articulo) => {
+          d.articulos.map(async (articuloStock) => {
             await Articulo.findOne({
-              _id: a.articulo,
+              _id: articuloStock.articulo,
               estado,
               lineaArticulo: idLinea,
             })
@@ -105,7 +105,8 @@ const getArticulosBySucursal = async (req, res = response) => {
                 const isFound = articulos.some(
                   (art) => art._id == articulo._id
                 );
-                if (!isFound) articulos.push(articulo);
+                articuloStock.articulo = articulo;
+                if (!isFound) articulos.push(articuloStock);
               });
           })
         );
@@ -203,6 +204,10 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
 const addArticuloToSucursales = async (articulo, usuario_id) => {
   try {
     const articulosSucursal = await ArticuloSucursal.find();
+    console.log(
+      "Articulos en sucursal antes",
+      articulosSucursal[0].articulos.length
+    );
 
     articulosSucursal.map(async (as = ArticuloSucursal) => {
       as.articulos.push({
@@ -211,6 +216,12 @@ const addArticuloToSucursales = async (articulo, usuario_id) => {
       });
       await as.save();
     });
+
+    const articulosSucursal1 = await ArticuloSucursal.find();
+    console.log(
+      "Articulos en sucursal despues",
+      articulosSucursal1[0].articulos.length
+    );
   } catch (error) {
     console.log(error);
     throw new Error(error);
