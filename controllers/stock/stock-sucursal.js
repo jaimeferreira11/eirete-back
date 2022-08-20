@@ -85,6 +85,8 @@ const getLineasBySucursal = async (req, res = response) => {
         );
       })
     );
+    // ordenar
+    lineas.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
     res.json(lineas);
   });
 };
@@ -295,6 +297,7 @@ const getArticulosByQuery = async (req, res = response) => {
     }
   }, []);
 
+  lineasConArticulos.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
   res.json(lineasConArticulos);
 };
 
