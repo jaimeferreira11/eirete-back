@@ -235,6 +235,7 @@ const getArticulosByQuery = async (req, res = response) => {
     }
   }, []);
 
+  lineasConArticulos.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
   res.json(lineasConArticulos);
 };
 
