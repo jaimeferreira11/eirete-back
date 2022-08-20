@@ -117,16 +117,21 @@ router.post(
   "/",
   [
     validarJWT,
-    check("cliente._id", "No es un id de Mongo válido").isMongoId(),
-    check("cliente._id").custom(existeClientePorId),
+    // va insertar cuando el cliente no existe
+    // check("cliente._id", "No es un id de Mongo válido").isMongoId(),
+    //  check("cliente._id").custom(existeClientePorId),
     check("cliente.persona.nroDoc", "El documento es obligatoria")
       .not()
       .isEmpty(),
+
     check(
       "cliente.persona.nroDoc",
       "El documento debe de al menos 6 digitos"
     ).isLength({ min: 6 }),
-    check("cliente.persona.nroDoc").custom(existeClientePorDoc),
+    //  check("cliente.persona.nroDoc").custom(existeClientePorDoc),
+    check("cliente.persona.nombreApellido", "La razon social es obligatoria")
+      .not()
+      .isEmpty(),
     check("sucursal._id", "No es un id de Mongo").isMongoId(),
     check("sucursal._id").custom(existeSucursalPorId),
     check("impuesto", "El impuesto es obligatorio y numerico")

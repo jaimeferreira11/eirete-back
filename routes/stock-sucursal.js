@@ -8,6 +8,7 @@ const {
   getLineasBySucursal,
   getArticulosBySucursal,
   updateArticuloSucursal,
+  getArticulosByQuery,
 } = require("../controllers/stock/stock-sucursal");
 const {
   existeSucursalPorId,
@@ -65,6 +66,43 @@ router.put(
     validarCampos,
   ],
   updateArticuloSucursal
+);
+
+/**
+ * @swagger
+ * /sucursal/:id/search/articulos-con-lineas:
+ *  get:
+ *    tags: ["Stock"]
+ *    summary: Obtiene articulos por el termino introducido agrupados en linea de articulo
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: search
+ *        in: "query"
+ *        description: "Termino a  buscar"
+ *        required: true
+ *        type: string
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Articulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/sucursal/:id/search/articulos-con-lineas",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeSucursalPorId),
+    validarCampos,
+  ],
+  getArticulosByQuery
 );
 
 module.exports = router;

@@ -23,8 +23,6 @@ const getAll = async (req, res = response) => {
 
   if (linea) query.lineaArticulo = ObjectId(linea);
 
-  console.log(query);
-
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       Articulo.countDocuments(query),

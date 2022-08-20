@@ -2,6 +2,7 @@ const { response } = require("express");
 const { ObjectId } = require("mongoose").Types;
 
 const { ArticuloSucursal, Sucursal, Articulo } = require("../../models");
+const lineaArticulo = require("../../models/stock/linea-articulo");
 
 const getBySucursal = async (req, res = response) => {
   const { id } = req.params;
@@ -10,7 +11,7 @@ const getBySucursal = async (req, res = response) => {
     sucursal: id,
   };
 
-  if (paginado === "true") {
+  if (paginado == "true") {
     const [total, data] = await Promise.all([
       ArticuloSucursal.countDocuments(query),
       ArticuloSucursal.find(query)
@@ -38,16 +39,24 @@ const getBySucursal = async (req, res = response) => {
   } else {
     const data = await ArticuloSucursal.find(query)
       .populate({
-        path: "lineaArticulo",
+        path: "articulos",
         select: "-__v",
+        populate: {
+          path: "articulo",
+          select: "-__v",
+          populate: {
+            path: "lineaArticulo",
+            select: "-__v",
+          },
+        },
       })
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username");
+      .populate("sucursal", "descripcion");
     res.json(data);
   }
 };
 
 // FIXME: Mejorar la logica
+// TODO: Mudar a la ruta de linea-articulos
 const getLineasBySucursal = async (req, res = response) => {
   const { id } = req.params;
   const { estado = true } = req.query;
@@ -119,16 +128,20 @@ const getArticulosBySucursal = async (req, res = response) => {
 const updateArticuloSucursal = async (req, res = response) => {
   const { id } = req.params;
   const { estado = true, ...body } = req.body;
+
+  console.log("Actualizando el stock", body);
   try {
     await ArticuloSucursal.findOne({
       sucursal: id,
-    }).exec(async (err, doc = []) => {
+    }).exec(async (err, doc) => {
       if (err) {
         console.log(err);
         return res.status(500).json({
           msg: `Hable con el administrador`,
         });
       }
+
+      console.log("Cantidad de articulos en la sucursal", doc.articulos.length);
 
       let data = doc.articulos.find((a) => a.articulo == body.articulo);
       if (!data) {
@@ -143,15 +156,18 @@ const updateArticuloSucursal = async (req, res = response) => {
       body.fechaAlta = data.fechaAlta;
       body.usuarioModif = req.usuario._id;
       body.fechaModif = Date.now();
-      body.estado = estado;
 
       // reemplazar el elemento en el array
-      const updatedArray = doc.articulos.map((x) =>
-        x._id === data._id ? body : x
-      );
+      // const updatedArray = doc.articulos.map((x) =>
+      //   x._id == data._id ? body : x
+      // );
 
-      // se setea el array actualizado
-      doc.articulos = updatedArray;
+      doc.articulos[doc.articulos.findIndex((el) => el._id == data._id)] = body;
+      console.log(doc.articulos);
+      console.log(
+        "Cantidad de articulos en la sucursal despues: ",
+        doc.articulos.length
+      );
       await ArticuloSucursal.findByIdAndUpdate(doc._id, doc, {
         new: true,
       });
@@ -228,6 +244,60 @@ const addArticuloToSucursales = async (articulo, usuario_id) => {
   }
 };
 
+const getArticulosByQuery = async (req, res = response) => {
+  const { id } = req.params;
+  const { search } = req.query;
+
+  if (!search) return res.json([]);
+
+  console.log("Buscando articulo en la sucursal: ", search);
+
+  const articulosSucursal = await ArticuloSucursal.findOne({ sucursal: id })
+    .populate({
+      path: "articulos",
+      select: "-__v",
+      populate: {
+        path: "articulo",
+        select: "-__v",
+      },
+    })
+    .populate("sucursal", "descripcion");
+
+  if (!articulosSucursal) {
+    return res.status(404).json({
+      msg: `No hay articulos en esa sucursal`,
+    });
+  }
+
+  const data = articulosSucursal.articulos.filter(
+    (a) => a.articulo.descripcion.indexOf(search.toUpperCase()) > -1
+  );
+
+  let lineasAgregadas = {};
+  const lineasConArticulos = await data.reduce(async (prev, art) => {
+    const currentMemoValue = await prev;
+
+    if (lineasAgregadas[art.articulo.lineaArticulo]) {
+      const index = lineasAgregadas[art.articulo.lineaArticulo] - 1;
+      currentMemoValue[index].articulos = [
+        ...currentMemoValue[index].articulos,
+        art,
+      ];
+      return prev;
+    } else {
+      const linea = await lineaArticulo
+        .findById(art.articulo.lineaArticulo)
+        .select("_id descripcion")
+        .lean();
+      lineasAgregadas[art.articulo.lineaArticulo] = currentMemoValue.length + 1;
+
+      return [...currentMemoValue, { ...linea, articulos: [art] }];
+    }
+  }, []);
+
+  res.json(lineasConArticulos);
+};
+
 module.exports = {
   getBySucursal,
   getLineasBySucursal,
@@ -235,4 +305,5 @@ module.exports = {
   updateArticuloSucursal,
   createArticuloSucursal,
   addArticuloToSucursales,
+  getArticulosByQuery,
 };

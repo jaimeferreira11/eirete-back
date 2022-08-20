@@ -19,7 +19,7 @@ const {
   EstadoDelivery,
   TipoImpuesto,
 } = require("../../helpers/constants");
-const { updatePersona } = require("../catastro/personas");
+const { updatePersona, addPersona } = require("../catastro/personas");
 
 const getAll = async (req, res = response) => {
   const {
@@ -105,6 +105,39 @@ const getById = async (req, res = response) => {
 };
 
 const add = async (req, res = response) => {
+  let { ...pedidoData } = req.body;
+
+  /* Verificar cliente*/
+  if (pedidoData.cliente.persona.nroDoc != ClienteOcasional) {
+    const cliente = await Cliente.findById(pedidoData.cliente._id).populate(
+      "persona",
+      "-__v"
+    );
+    if (!cliente) {
+      // crear el cliente
+      const newPersonaModel = new Persona({ ...pedidoData.cliente.persona });
+      const personaSaved = await addPersona(newPersonaModel, req.usuario._id);
+      const newClienteData = new Cliente({
+        persona: personaSaved,
+        usuarioAlta: req.usuario._id,
+      });
+
+      const clienteSaved = await newClienteData.save();
+
+      pedidoData.cliente = clienteSaved;
+    } else {
+      // si el cliente no tiene ruc registrado y el pedido viene con ruc
+      // actualizar cliente
+      if (!cliente.persona.ruc && pedidoData.cliente.persona.ruc) {
+        cliente.persona.ruc = pedidoData.cliente.persona.ruc;
+        console.log("Actualizando ruc del cliente", cliente.persona.ruc);
+
+        await updatePersona(cliente.persona, req.usuario._id);
+      }
+    }
+  }
+  /** */
+  //
   const session = await mongoose.startSession();
 
   try {
@@ -117,31 +150,6 @@ const add = async (req, res = response) => {
         });
       }
     }
-
-    let { ...pedidoData } = req.body;
-
-    /* Verificar cliente*/
-    if (pedidoData.cliente.persona.nroDoc != ClienteOcasional) {
-      const cliente = await Cliente.findById(pedidoData.cliente._id).populate(
-        "persona",
-        "-__v"
-      );
-      if (!cliente) {
-        return res.status(400).json({
-          msg: `No se encontró al cliente`,
-        });
-      } else {
-        // si el cliente no tiene ruc registrado y el pedido viene con ruc
-        // actualizar cliente
-        if (!cliente.persona.ruc && pedidoData.cliente.persona.ruc) {
-          cliente.persona.ruc = pedidoData.cliente.persona.ruc;
-          console.log("Actualizando ruc del cliente", cliente.persona.ruc);
-
-          updatePersona(cliente.persona, req.usuario._id);
-        }
-      }
-    }
-    /** */
 
     session.startTransaction();
     /* Verificar articulos*/
