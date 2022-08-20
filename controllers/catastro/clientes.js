@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { Cliente, Persona } = require("../../models");
-const { updatePersona } = require("./personas");
+const { updatePersona, obtenerPersonaByNroDoc } = require("./personas");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
@@ -107,7 +107,15 @@ const getByPersonaId = async (req, res = response) => {
 
 const getByPersonaDoc = async (req, res = response) => {
   const { doc } = req.params;
-  const modelDB = await Cliente.findOne({ "persona.nroDoc": doc })
+
+  const persona = await obtenerPersonaByNroDoc(doc);
+  if (!persona) {
+    return res.status(404).json({
+      msg: `El Cliente con doc ${doc} no existe`,
+    });
+  }
+  console.log(persona);
+  const modelDB = await Cliente.findOne({ persona: persona._id })
     .populate("persona", "-__v")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
