@@ -25,7 +25,7 @@ const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
-    paginado = true,
+    paginado = "true",
     orderBy = "fechaAlta",
     direction = -1,
     search = "",
@@ -34,17 +34,14 @@ const getAll = async (req, res = response) => {
   let query = {};
 
   if (search) {
-    const regex = {
-      $regex: ".*" + skipAcentAndSpace(search) + ".*",
-      $options: "i",
-    };
-    query = {
-      $or: [{ descripcion: regex }],
-      $and: [{ estado: true }],
-    };
+    // const regex = {
+    //   $regex: ".*" + skipAcentAndSpace(search) + ".*",
+    //   $options: "i",
+    // };
+    query = { nro: search };
   }
 
-  if (paginado === "true") {
+  if (paginado == "true") {
     const [total, data] = await Promise.all([
       Pedido.countDocuments(query),
       Pedido.find(query)
@@ -54,6 +51,18 @@ const getAll = async (req, res = response) => {
           populate: {
             path: "persona",
             select: "-__v",
+          },
+        })
+        .populate({
+          path: "detalles",
+          select: "-__v",
+          populate: {
+            path: "articulo",
+            select: "-__v",
+            populate: {
+              path: "lineaArticulo",
+              select: "-__v",
+            },
           },
         })
         .populate("sucursal", "descripcion")
@@ -78,6 +87,18 @@ const getAll = async (req, res = response) => {
           select: "-__v",
         },
       })
+      .populate({
+        path: "detalles",
+        select: "-__v",
+        populate: {
+          path: "articulo",
+          select: "-__v",
+          populate: {
+            path: "lineaArticulo",
+            select: "-__v",
+          },
+        },
+      })
       .populate("sucursal", "descripcion")
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
@@ -97,11 +118,141 @@ const getById = async (req, res = response) => {
         select: "-__v",
       },
     })
+    .populate({
+      path: "detalles",
+      select: "-__v",
+      populate: {
+        path: "articulo",
+        select: "-__v",
+        populate: {
+          path: "lineaArticulo",
+          select: "-__v",
+        },
+      },
+    })
     .populate("sucursal", "descripcion")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 
+  if (!modelDB) {
+    return res.status(404).json({
+      msg: `No se encontró el pedido con id: ${id} `,
+    });
+  }
+
   res.json(modelDB);
+};
+
+const getByNro = async (req, res = response) => {
+  const { nro } = req.params;
+  const modelDB = await Pedido.findOne({ nro })
+    .populate({
+      path: "cliente",
+      select: "-__v",
+      populate: {
+        path: "persona",
+        select: "-__v",
+      },
+    })
+    .populate({
+      path: "detalles",
+      select: "-__v",
+      populate: {
+        path: "articulo",
+        select: "-__v",
+        populate: {
+          path: "lineaArticulo",
+          select: "-__v",
+        },
+      },
+    })
+    .populate("sucursal", "descripcion")
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+
+  if (!modelDB) {
+    return res.status(404).json({
+      msg: `No se encontró el pedido nro: ${nro} `,
+    });
+  }
+
+  res.json(modelDB);
+};
+
+const getByCliente = async (req, res = response) => {
+  const { id } = req.params;
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = "true",
+    orderBy = "fecha",
+    direction = -1,
+  } = req.query;
+
+  if (paginado == "true") {
+    const [total, data] = await Promise.all([
+      Pedido.countDocuments({ cliente: id }),
+      Pedido.find({ cliente: id })
+        .populate({
+          path: "cliente",
+          select: "-__v",
+          populate: {
+            path: "persona",
+            select: "-__v",
+          },
+        })
+        .populate({
+          path: "detalles",
+          select: "-__v",
+          populate: {
+            path: "articulo",
+            select: "-__v",
+            populate: {
+              path: "lineaArticulo",
+              select: "-__v",
+            },
+          },
+        })
+        .populate("sucursal", "descripcion")
+        .populate("usuarioAlta", "username")
+        .populate("usuarioModif", "username")
+        .skip(Number(desde))
+        .limit(Number(limite))
+        .sort({ [orderBy]: direction }),
+    ]);
+
+    res.json({
+      total,
+      data,
+    });
+  } else {
+    const data = await Pedido.find({ cliente: id })
+      .populate({
+        path: "cliente",
+        select: "-__v",
+        populate: {
+          path: "persona",
+          select: "-__v",
+        },
+      })
+      .populate({
+        path: "detalles",
+        select: "-__v",
+        populate: {
+          path: "articulo",
+          select: "-__v",
+          populate: {
+            path: "lineaArticulo",
+            select: "-__v",
+          },
+        },
+      })
+      .populate("sucursal", "descripcion")
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
+    res.json(data);
+  }
 };
 
 const add = async (req, res = response) => {
@@ -169,13 +320,13 @@ const add = async (req, res = response) => {
     /** */
 
     /* Verificar el tipo de pedido: */
-    if (pedidoData.tipoPedido == TipoPedido.REGULAR) {
-      // Si es Regular el pago se hizo en este proceso
-      pedidoData.estadoPedido = EstadoPedido.PAGADO;
-    } else {
+    if (pedidoData.tipoPedido == TipoPedido.DELIVERY) {
       // Si es Delivery, el pago se realiza en otro proceso
       pedidoData.estadoPedido = EstadoPedido.PENDIENTE;
       pedidoData.estadoDelivery = EstadoDelivery.EN_ESPERA;
+    } else {
+      // Si es Regular el pago se hizo en este proceso
+      pedidoData.estadoPedido = EstadoPedido.PAGADO;
     }
     /** */
 
@@ -200,6 +351,17 @@ const add = async (req, res = response) => {
   } finally {
     session.endSession();
   }
+};
+
+const changeStatus = async (req, res = response) => {
+  const { id, status } = req.params;
+  const modelBorrado = await Pedido.findByIdAndUpdate(
+    id,
+    { estadoPedido: status },
+    { new: true }
+  );
+
+  res.json(modelBorrado);
 };
 
 /// Metodos internos
@@ -271,4 +433,7 @@ module.exports = {
   add,
   getAll,
   getById,
+  getByNro,
+  getByCliente,
+  changeStatus,
 };
