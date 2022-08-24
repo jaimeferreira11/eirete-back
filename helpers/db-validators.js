@@ -10,6 +10,7 @@ const {
   Sucursal,
   Caja,
   Ciudad,
+  Pedido,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -220,6 +221,17 @@ const existeCiudadPorId = async (id) => {
 };
 
 /**
+ * Pedidos
+ */
+const existPedidoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Pedido.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
  * Validar colecciones permitidas
  */
 const coleccionesPermitidas = (coleccion = "", colecciones = []) => {
@@ -290,4 +302,5 @@ module.exports = {
   existeLineaArticuloPorId,
   existeCajaPorId,
   existeCiudadPorId,
+  existPedidoPorId,
 };

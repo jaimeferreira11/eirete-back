@@ -3,14 +3,19 @@ const { check } = require("express-validator");
 
 const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
-const { add, getAll, getById } = require("../controllers/transaccion/pedidos");
 const {
-  existeClientePorDoc,
-  existePersonaPorId,
-  nroDocExiste,
+  add,
+  getAll,
+  getById,
+  getByNro,
+  getByCliente,
+  changeStatus,
+} = require("../controllers/transaccion/pedidos");
+const {
   existeArticuloPorId,
-  existeClientePorId,
+  existPedidoPorId,
   existeSucursalPorId,
+  existeClientePorId,
 } = require("../helpers/db-validators");
 const {
   TipoPedido,
@@ -38,7 +43,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/Cliente"
+ *            $ref: "#/definitions/Pedido"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -50,16 +55,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /clientes/{clienteId}:
+ * /pedidos/{pedidoId}:
  *  get:
- *    tags: ["Catastro"]
- *    summary: Obtiene cliente por id
+ *    tags: ["Transaccion"]
+ *    summary: Obtiene pedido por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: clienteId
+ *      - name: pedidoId
  *        in: "path"
- *        description: "Id del cliente"
+ *        description: "Id del pedido"
  *        required: true
  *        type: integer
  *        format: int64
@@ -67,7 +72,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Cliente"
+ *          $ref: "#/definitions/Pedido"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -80,10 +85,86 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeClientePorId),
+    check("id").custom(existPedidoPorId),
     validarCampos,
   ],
   getById
+);
+
+/**
+ * @swagger
+ * /pedidos/search/nro/{nro}:
+ *  get:
+ *    tags: ["Transaccion"]
+ *    summary: Obtiene pedido por el nro de orden
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: nro
+ *        in: "path"
+ *        description: "Número del pedido"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Pedido"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/search/nro/:nro",
+  [
+    validarJWT,
+    check("nro", "El nro a buscar es obligatorio y numerico")
+      .notEmpty()
+      .isNumeric(),
+    validarCampos,
+  ],
+  getByNro
+);
+/**
+ * @swagger
+ * /pedidos/search/cliente/{clienteId}:
+ *  get:
+ *    tags: ["Transaccion"]
+ *    summary: Obtiene historial de pedidos del cliente
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: clienteId
+ *        in: "path"
+ *        description: "Número del pedido"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Pedido"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/search/cliente/:id",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeClientePorId),
+    validarCampos,
+  ],
+  getByCliente
 );
 
 /**
@@ -100,12 +181,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Cliente"
+ *          $ref: "#/definitions/Pedido"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Cliente"
+ *          $ref: "#/definitions/Pedido"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -179,6 +260,59 @@ router.post(
     validarCampos,
   ],
   add
+);
+
+/**
+ * @swagger
+ * /pedidos/change-status/{pedidoId}/{estadoPedido}:
+ *  put:
+ *    tags: ["Transaccion"]
+ *    summary: Cambiar el estado de un pedido
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: pedidoId
+ *        in: "path"
+ *        description: "Id del pedido"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estadoPedido
+ *        in: "path"
+ *        description: "Nuevo estado del pedido"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Pedido"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
+router.put(
+  "/change-status/:id/:status",
+  [
+    validarJWT,
+    esAdminRole,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existPedidoPorId),
+    check("status", "El estado es obligatorio").not().isEmpty(),
+    check("status", "Estado de pedido no valido").isIn([
+      EstadoPedido.PENDIENTE,
+      EstadoPedido.FACTURADO,
+      EstadoPedido.FACTURADO,
+      EstadoPedido.CANCELADO,
+      EstadoPedido.ANULADO,
+      EstadoPedido.REVERSADO,
+    ]),
+    validarCampos,
+  ],
+  changeStatus
 );
 
 module.exports = router;
