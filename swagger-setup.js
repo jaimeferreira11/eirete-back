@@ -277,6 +277,127 @@ const swaggerDefinition = {
         },
       },
     },
+    CategoriaMovimiento: {
+      type: "object",
+      properties: {
+        _id: {
+          type: "string",
+        },
+        descripcion: {
+          type: "string",
+        },
+        estado: {
+          type: "boolean",
+        },
+        esGasto: {
+          type: "boolean",
+        },
+        esIngreso: {
+          type: "boolean",
+        },
+        afectaArqueo: {
+          type: "boolean",
+        },
+        visibleCaja: {
+          type: "boolean",
+        },
+        afectaEstadistica: {
+          type: "boolean",
+        },
+      },
+    },
+    Movimiento: {
+      type: "object",
+      properties: {
+        _id: {
+          type: "string",
+        },
+        descripcion: {
+          type: "string",
+        },
+        monto: {
+          type: "integer",
+          format: "int64",
+        },
+        categoria: {
+          $ref: "#/definitions/CategoriaMovimiento",
+        },
+        esGasto: {
+          type: "boolean",
+        },
+        esIngreso: {
+          type: "boolean",
+        },
+      },
+    },
+    Turno: {
+      type: "object",
+      properties: {
+        _id: {
+          type: "string",
+        },
+        nro: {
+          type: "integer",
+          format: "int64",
+        },
+        fechaApertura: {
+          type: "date",
+          pattern: "/([0-9]{4})-(?:[0-9]{2})-([0-9]{2})/",
+          example: "2000-01-01",
+        },
+        fechaCierre: {
+          type: "date",
+          pattern: "/([0-9]{4})-(?:[0-9]{2})-([0-9]{2})/",
+          example: "2000-01-01",
+        },
+        sucursal: {
+          $ref: "#/definitions/Sucursal",
+        },
+        caja: {
+          $ref: "#/definitions/Caja",
+        },
+        usuario: {
+          $ref: "#/definitions/Usuario",
+        },
+        estado: {
+          type: "boolean",
+        },
+      },
+    },
+    Arqueo: {
+      type: "object",
+      properties: {
+        _id: {
+          type: "string",
+        },
+        turno: {
+          $ref: "#/definitions/Turno",
+        },
+        stock: {
+          type: "array",
+        },
+        monedas: {
+          type: "array",
+        },
+        billetes: {
+          type: "array",
+        },
+        totalEfectivo: {
+          type: "integer",
+          format: "int64",
+        },
+        totalDeposito: {
+          type: "integer",
+          format: "int64",
+        },
+        responsable: {
+          type: "string",
+        },
+        estado: {
+          type: "boolean",
+        },
+      },
+    },
     UserCredencials: {
       type: "object",
       properties: {

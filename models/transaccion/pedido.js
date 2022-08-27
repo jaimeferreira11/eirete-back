@@ -57,8 +57,12 @@ const metodoPago = new Schema({
 
 const direccionEnvio = new Schema({
   direccion: {
-    type: Number,
-    required: [true, "El precio unitario es requerido"],
+    type: String,
+    required: [true, "La dirección es obligatoria"],
+  },
+  ciudad: {
+    type: String,
+    required: [true, "La ciudad es obligatoria"],
   },
   contacto: {
     type: String,
@@ -127,6 +131,9 @@ const PedidoSchema = new Schema({
     type: direccionEnvio,
   },
   obs: {
+    type: String,
+  },
+  motivoCancelacion: {
     type: String,
   },
   detalles: {

@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { check } = require("express-validator");
+const { check, oneOf } = require("express-validator");
 
 const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
@@ -227,9 +227,10 @@ router.post(
     check("vuelto", "El vuelto es obligatorio y numerico")
       .notEmpty()
       .isNumeric(),
-    check("tipoPedido", "Tipo de pedio no valido")
-      .optional()
-      .isIn([TipoPedido.DELIVERY, TipoPedido.REGULAR]),
+    check("tipoPedido", "Tipo de pedio no valido").isIn([
+      TipoPedido.DELIVERY,
+      TipoPedido.REGULAR,
+    ]),
     check("tipoFactura", "Tipo de factura no valido")
       .optional()
       .isIn([TipoFactura.CONTADO, TipoFactura.CREDITO]),
@@ -257,6 +258,28 @@ router.post(
     check("detalles.*.tipoImpuesto", "Tipo de impuesto no valido")
       .isNumeric()
       .isIn([0, 5, 10]),
+    oneOf([
+      [
+        check("tipoPedido", "Es delivery").equals(TipoPedido.DELIVERY),
+        check(
+          "direccionEnvio",
+          "La informacion de direccion de envio es obligatoria para el tipo de Delivery"
+        )
+          .not()
+          .isEmpty(),
+        check("direccionEnvio.direccion", "La direccion es obligatoria")
+          .not()
+          .isEmpty(),
+        check("direccionEnvio.ciudad", "La ciudad es obligatoria")
+          .not()
+          .isEmpty(),
+      ],
+      [
+        check("tipoPedido", "No es por delivery")
+          .not()
+          .equals(TipoPedido.DELIVERY),
+      ],
+    ]),
     validarCampos,
   ],
   add
