@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { check } = require("express-validator");
+const { check, body } = require("express-validator");
 
 const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
@@ -10,6 +10,7 @@ const {
   getByPersonaId,
   getByPersonaDoc,
   update,
+  updateDirecciones,
   changeStatus,
 } = require("../controllers/catastro/clientes");
 const {
@@ -275,6 +276,63 @@ router.put(
     validarCampos,
   ],
   update
+);
+
+/**
+ * @swagger
+ * /clientes/direcciones/{clienteId}:
+ *  put:
+ *    tags: ["Catastro"]
+ *    summary: Actualizar un cliente
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: clienteId
+ *        in: "path"
+ *        description: "Id del cliente"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Lista de direcciones a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/DireccionCliente"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Cliente"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
+router.put(
+  "/:id/direcciones",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeClientePorId),
+    check("direcciones", "La lista de direcciones es obligatoria")
+      .notEmpty()
+      .isArray(),
+    check("direcciones.*.direccion", "La dirección es obligatoria")
+      .not()
+      .isEmpty(),
+    check("direcciones.*.ciudad", "La ciudad es obligatoria").not().isEmpty(),
+    check("direcciones.*.contacto", "El numero de contacto debe ser numerico")
+      .optional()
+      .isNumeric(),
+    check("direcciones.*.predeterminado", "Debe ser booleano")
+      .optional()
+      .isBoolean(),
+    validarCampos,
+  ],
+  updateDirecciones
 );
 
 /**

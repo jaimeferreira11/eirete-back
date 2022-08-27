@@ -264,18 +264,37 @@ const add = async (req, res = response) => {
       "persona",
       "-__v"
     );
+    let crearNuevoCliente = true;
     if (!cliente) {
-      // crear el cliente
-      const newPersonaModel = new Persona({ ...pedidoData.cliente.persona });
-      const personaSaved = await addPersona(newPersonaModel, req.usuario._id);
-      const newClienteData = new Cliente({
-        persona: personaSaved,
-        usuarioAlta: req.usuario._id,
+      // Buscar si ya existe persona
+      let existePersona = await Persona.findOne({
+        nroDoc: pedidoData.cliente.persona.nroDoc,
       });
+      if (!existePersona) {
+        console.log("No existe persona, crear....");
+        // crea la persona
+        const newPersonaModel = new Persona({ ...pedidoData.cliente.persona });
+        existePersona = await addPersona(newPersonaModel, req.usuario._id);
+      } else {
+        console.log("Existe persona, verificar si ya es cliente...");
+        const existeCliente = await Cliente.findOne({
+          persona: existePersona._id,
+        });
+        if (existeCliente) {
+          pedidoData.cliente = existeCliente;
+          crearNuevoCliente = false;
+        }
+      }
+      // crear el cliente
+      if (crearNuevoCliente) {
+        const newClienteData = new Cliente({
+          persona: existePersona,
+          usuarioAlta: req.usuario._id,
+        });
 
-      const clienteSaved = await newClienteData.save();
-
-      pedidoData.cliente = clienteSaved;
+        const clienteSaved = await newClienteData.save();
+        pedidoData.cliente = clienteSaved;
+      }
     } else {
       // si el cliente no tiene ruc registrado y el pedido viene con ruc
       // actualizar cliente
@@ -355,9 +374,11 @@ const add = async (req, res = response) => {
 
 const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
+
+  const { motivoCancelacion = "" } = req.body;
   const modelBorrado = await Pedido.findByIdAndUpdate(
     id,
-    { estadoPedido: status },
+    { estadoPedido: status, motivoCancelacion },
     { new: true }
   );
 

@@ -200,6 +200,18 @@ const add = async (req, res = response) => {
         persona: persona._id,
         usuarioAlta: req.usuario._id,
       };
+
+      if (persona.direccion) {
+        console.log("Armando la direccion");
+        const direccion = {
+          direccion: persona.direccion,
+          ciudad: persona.ciudad,
+          predeterminado: true,
+          contacto: persona.celular,
+          obs: persona.obs,
+        };
+        clienteData.direcciones = [direccion];
+      }
       const newModel = new Cliente(clienteData);
 
       // Guardar DB
@@ -225,11 +237,48 @@ const update = async (req, res = response) => {
 
     await updatePersona(data.persona, req.usuario._id);
 
+    if (data.persona.direccion) {
+      console.log("Armando la direccion");
+      const direccion = {
+        direccion: data.persona.direccion,
+        ciudad: data.persona.ciudad,
+        predeterminado: true,
+        contacto: data.persona.celular,
+        obs: data.persona.obs,
+      };
+      data.direcciones = [direccion];
+    }
+
     const newModel = await Cliente.findByIdAndUpdate(id, data, { new: true });
 
     res.json(newModel);
   } catch (error) {
     res.status(400).json({ msg: `Error al actualizar el cliente: ${error}` });
+  }
+};
+
+const updateDirecciones = async (req, res = response) => {
+  try {
+    const { id } = req.params;
+    const { direcciones = [] } = req.body;
+
+    const data = await Cliente.findById(id);
+    data.usuarioModif = req.usuario._id;
+    data.fechaModif = Date.now();
+    data.direcciones = direcciones;
+
+    if (data.direcciones.filter((d) => d.predeterminado).length > 1) {
+      data.direcciones.forEach((d) => (d.predeterminado = false));
+      data.direcciones[0].predeterminado = true;
+    }
+
+    const newModel = await Cliente.findByIdAndUpdate(id, data, { new: true });
+
+    res.json(newModel);
+  } catch (error) {
+    res.status(400).json({
+      msg: `Error al actualizar las direcciones del cliente: ${error}`,
+    });
   }
 };
 
@@ -252,4 +301,5 @@ module.exports = {
   update,
   changeStatus,
   getByPersonaDoc,
+  updateDirecciones,
 };

@@ -1,55 +1,18 @@
 const { Schema, model } = require("mongoose");
-const { PedidoSchema } = require("../index");
+const diffHistory = require("mongoose-audit-trail");
 
-const diffHistory = require('mongoose-audit-trail');
-
-const totalesIngreso = new Schema({
-
-  importe: {
-    type: Number,
-    required: [true, "El precio unitario es requerido"],
-  },
-  descripcion: {
-    type: String,
-    required: true,
-    default: "EFECTIVO",
-    emun: ["EFECTIVO", "TARJETA", "TRANSFERENCIA","CHEQUE"],
-  }
-  
+const TurnoCounterSchema = Schema({
+  seq: { type: Number, default: 0 },
 });
 
-const totalesEgreso = new Schema({
-
-  importe: {
-    type: Number,
-    required: [true, "El importe es requerido"],
-  },
-  descripcion: {
-    type: String,
-    required: true,
-    default: "VUELTO",
-    emun: ["VUELTO"],
-  }
-  
-});
-
-const dineroCaja = new Schema({
-
-  importe: {
-    type: Number,
-    required: [true, "El importe es requerido"],
-  },
-  descripcion: {
-    type: String,
-    required: true,
-    emun: ["MONEDAS DE 50", "MONEDAS DE 100",
-      "MONEDAS DE 500", "MONEAS DE 1.000",
-      "BILLERES DE 2.000", "BILLETES DE 5.000", "BILLETES DE 10.000", "BILLETES DE 20.000", "BILLETES DE 50.000", "BILLETES DE 100.000"],
-  }
-  
-});
+const turnoCounterColleccion = model("turnoCounter", TurnoCounterSchema);
 
 const TurnoSchema = new Schema({
+  nro: {
+    type: Number,
+    default: 1,
+    unique: true,
+  },
   fechaApertura: {
     type: Date,
     require: true,
@@ -66,19 +29,12 @@ const TurnoSchema = new Schema({
   caja: {
     type: Schema.Types.ObjectId,
     ref: "Caja",
-    required: [true, "La caja es obligatoria"],
   },
-  totalesIngreso: {
-    type: [totalesIngreso],
-    default: []
+  usuario: {
+    type: Schema.Types.ObjectId,
+    ref: "Usuario",
+    required: [true, "El usuario es obligatorio"],
   },
-  totalesEgreso: {
-    type: [totalesEgreso],
-    default: []
-  },
-  ventas: [PedidoSchema],
-  pedidosCancelados: [PedidoSchema],
-  dineroCaja: [dineroCaja],
   estado: {
     type: Boolean,
     required: [true, "El estado es obligatorio"],
@@ -105,5 +61,21 @@ const TurnoSchema = new Schema({
 
 TurnoSchema.plugin(diffHistory.plugin);
 
+TurnoSchema.pre("save", async function (next) {
+  let doc = this;
+
+  console.log("Pre save turno");
+  let counterDoc = await turnoCounterColleccion.findOne();
+  if (!counterDoc) {
+    counterDoc = new turnoCounterColleccion({ seq: 1 });
+  } else {
+    counterDoc.seq++;
+  }
+  doc.nro = counterDoc.seq;
+  console.log(doc.nro);
+  counterDoc.save();
+
+  next();
+});
 
 module.exports = model("Turno", TurnoSchema);

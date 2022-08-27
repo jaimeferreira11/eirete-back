@@ -1,33 +1,27 @@
 const { Schema, model } = require("mongoose");
+const diffHistory = require("mongoose-audit-trail");
 
-const CategoriaMovimientoSchema = Schema({
+const MovimientoSchema = Schema({
   descripcion: {
     type: String,
     required: [true, "La descripcion es obligatoria"],
   },
-  estado: {
-    type: Boolean,
-    default: true,
+  monto: {
+    type: Number,
+    required: [true, "El monto es obligatorio"],
+  },
+  categoria: {
+    type: Schema.Types.ObjectId,
+    ref: "CategoriaMovimiento",
+    required: [true, "La categoria es obligatoria"],
   },
   esGasto: {
     type: Boolean,
-    default: true,
+    required: [true, "Es gasto es obligatorio"],
   },
   esIngreso: {
     type: Boolean,
-    default: false,
-  },
-  visibleCaja: {
-    type: Boolean,
-    default: false,
-  },
-  afectaArqueo: {
-    type: Boolean,
-    default: false,
-  },
-  afectaEstadistica: {
-    type: Boolean,
-    default: false,
+    required: [true, "Es ingreso es obligatorio"],
   },
   fechaAlta: {
     type: Date,
@@ -48,4 +42,6 @@ const CategoriaMovimientoSchema = Schema({
   },
 });
 
-module.exports = model("CategoriaMovimiento", CategoriaMovimientoSchema);
+MovimientoSchema.plugin(diffHistory.plugin);
+
+module.exports = model("Movimiento", MovimientoSchema);
