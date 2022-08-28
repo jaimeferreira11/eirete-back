@@ -10,6 +10,7 @@ const {
   ArticuloSucursal,
   Cliente,
   Persona,
+  Turno,
 } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
 const {
@@ -20,6 +21,7 @@ const {
   TipoImpuesto,
 } = require("../../helpers/constants");
 const { updatePersona, addPersona } = require("../catastro/personas");
+const { ObtenerOrCrearTurno } = require("../tesoreria/turnos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -213,6 +215,7 @@ const getByCliente = async (req, res = response) => {
             },
           },
         })
+        .populate("turno", "-__v")
         .populate("sucursal", "descripcion")
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
@@ -247,6 +250,7 @@ const getByCliente = async (req, res = response) => {
           },
         },
       })
+      .populate("turno", "-__v")
       .populate("sucursal", "descripcion")
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
@@ -355,6 +359,13 @@ const add = async (req, res = response) => {
 
     pedidoData.usuarioAlta = req.usuario._id;
     const newModel = new Pedido(pedidoData);
+
+    /** Buscar si existe un turno activo del usuario */
+    const turnoActivo = await ObtenerOrCrearTurno(req.usuario);
+
+    pedidoData.turno = turnoActivo._id;
+
+    /**/
 
     // Guardar DB
     await newModel.save({ session });

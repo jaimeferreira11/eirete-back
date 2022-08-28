@@ -1,6 +1,7 @@
 const { response } = require("express");
 const { Movimiento, CategoriaMovimiento } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+const { ObtenerOrCrearTurno } = require("./turnos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -76,9 +77,12 @@ const add = async (req, res = response) => {
   req.body.descripcion = descripcion;
   req.body.usuarioAlta = req.usuario._id;
 
+  const turnoActivo = await ObtenerOrCrearTurno(usuario);
+
   const newModel = new Movimiento({
     esGasto: categoria.esGasto,
     esIngreso: categoria.esIngreso,
+    turno: turnoActivo._id,
     ...req.body,
   });
 

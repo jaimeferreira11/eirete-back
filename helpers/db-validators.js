@@ -13,6 +13,8 @@ const {
   Pedido,
   CategoriaMovimiento,
   Movimiento,
+  Arqueo,
+  Turno,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -256,6 +258,28 @@ const existeMovimientoPorId = async (id) => {
 };
 
 /**
+ * Arqueos
+ */
+const existeArqueoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Arqueo.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Turnos
+ */
+const existeTurnoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Turno.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
  * Validar colecciones permitidas
  */
 const coleccionesPermitidas = (coleccion = "", colecciones = []) => {
@@ -329,4 +353,6 @@ module.exports = {
   existPedidoPorId,
   existeCategoriaMovimientoPorId,
   existeMovimientoPorId,
+  existeArqueoPorId,
+  existeTurnoPorId,
 };

@@ -15,6 +15,11 @@ const MovimientoSchema = Schema({
     ref: "CategoriaMovimiento",
     required: [true, "La categoria es obligatoria"],
   },
+  turno: {
+    type: Schema.Types.ObjectId,
+    ref: "Turno",
+    required: [true, "El turno es obligatorio"],
+  },
   esGasto: {
     type: Boolean,
     required: [true, "Es gasto es obligatorio"],

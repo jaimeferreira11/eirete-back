@@ -37,7 +37,6 @@ const articuloStock = new Schema({
   stock: {
     type: Number,
     required: [true, "La cantidad es obligatoria"],
-    default: 0,
   },
 });
 
@@ -46,6 +45,11 @@ const ArqueoSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Turno",
     required: [true, "El turno es obligatoria"],
+  },
+  sucursal: {
+    type: Schema.Types.ObjectId,
+    ref: "Sucursal",
+    required: [true, "La sucursal es obligatoria"],
   },
   stock: {
     type: [articuloStock],
@@ -70,6 +74,32 @@ const ArqueoSchema = new Schema({
     default: 0,
     required: [true, "El total deposito es obligatorio"],
   },
+  totalEgreso: {
+    type: Number,
+    default: 0,
+    required: [true, "El total deposito es obligatorio"],
+  },
+  movimientos: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Movimiento",
+      required: true,
+    },
+  ],
+  pedidosRealizados: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Pedido",
+      required: true,
+    },
+  ],
+  pedidosCancelados: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Pedido",
+      required: true,
+    },
+  ],
   responsable: {
     type: String,
     required: [true, "El responsable es obligatorio"],
