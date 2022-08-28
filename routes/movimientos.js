@@ -9,10 +9,11 @@ const {
   getById,
   update,
   changeStatus,
-} = require("../controllers/tesoreria/movimiento");
+} = require("../controllers/tesoreria/movimientos");
 const {
   existeMovimientoPorId,
   existeCategoriaMovimientoPorId,
+  existeTurnoPorId,
 } = require("../helpers/db-validators");
 
 const router = Router();
@@ -122,40 +123,8 @@ router.post(
   add
 );
 
-/**
- * @swagger
- * /movimientos/{movimientoId}:
- *  put:
- *    tags: ["Tesoreria"]
- *    summary: Actualizar un movimiento
- *    description: ""
- *    produces: ["application/json"]
- *    parameters:
- *      - name: movimientoId
- *        in: "path"
- *        description: "Id del movimiento"
- *        required: true
- *        type: integer
- *        format: int64
- *      - name: body
- *        in: body
- *        description: "Objecto a guardar"
- *        required: true
- *        schema:
- *          $ref: "#/definitions/Movimiento"
- *    responses:
- *      '200':
- *        description: Operación exitosa
- *        schema:
- *          $ref: "#/definitions/Movimiento"
- *      '401':
- *        description: Acceso Prohibido
- *      '400':
- *        description: Petición incorrecta
- *      '500':
- *        description: Error inesperado
- */
-router.put(
+//! Los movimientos no se pueden editar
+/*router.put(
   "/:id",
   [
     validarJWT,
@@ -164,6 +133,8 @@ router.put(
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("categoria._id", "No es un id de Mongo").isMongoId(),
     check("categoria._id").custom(existeCategoriaMovimientoPorId),
+    check("turno._id", "No es un id de Mongo").isMongoId(),
+    check("turno._id").custom(existeTurnoPorId),
     check("monto", "El monto es obligatorio").not().isEmpty(),
     check("monto", "El monto debe tener al menos 3 digitos").isLength({
       min: 3,
@@ -172,5 +143,6 @@ router.put(
   ],
   update
 );
+*/
 
 module.exports = router;

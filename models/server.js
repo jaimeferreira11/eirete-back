@@ -28,6 +28,8 @@ class Server {
       pedidos: "/api/pedidos",
       categoriasMovimientos: "/api/categorias-movimientos",
       movimientos: "/api/movimientos",
+      arqueos: "/api/arqueos",
+      turnos: "/api/turnos",
     };
 
     // Conectar a base de datos
@@ -92,6 +94,8 @@ class Server {
       require("../routes/categorias-movimientos")
     );
     this.app.use(this.paths.movimientos, require("../routes/movimientos"));
+    this.app.use(this.paths.arqueos, require("../routes/arqueos"));
+    this.app.use(this.paths.turnos, require("../routes/turnos"));
   }
 
   listen() {

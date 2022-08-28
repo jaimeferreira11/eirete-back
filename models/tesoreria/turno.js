@@ -26,15 +26,6 @@ const TurnoSchema = new Schema({
     ref: "Sucursal",
     required: [true, "La sucursal es obligatoria"],
   },
-  caja: {
-    type: Schema.Types.ObjectId,
-    ref: "Caja",
-  },
-  usuario: {
-    type: Schema.Types.ObjectId,
-    ref: "Usuario",
-    required: [true, "El usuario es obligatorio"],
-  },
   estado: {
     type: Boolean,
     required: [true, "El estado es obligatorio"],

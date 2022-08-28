@@ -165,7 +165,11 @@ const PedidoSchema = new Schema({
     ref: "Usuario",
     required: true,
   },
-
+  turno: {
+    type: Schema.Types.ObjectId,
+    ref: "Turno",
+    required: [true, "El turno es obligatoria"],
+  },
   fechaModif: {
     type: Date,
   },

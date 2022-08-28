@@ -7,22 +7,24 @@ const {
   add,
   getAll,
   getById,
+  getTurnoActivoByUser,
   update,
   changeStatus,
-} = require("../controllers/tesoreria/categoria-movimientos");
+} = require("../controllers/tesoreria/turnos");
 const {
   existeSucursalPorId,
-  existeCategoriaMovimientoPorId,
+  existeTurnoPorId,
+  existeUsuarioPorId,
 } = require("../helpers/db-validators");
 
 const router = Router();
 
 /**
  * @swagger
- * /categorias-movimientos:
+ * /turnos:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene todos los categorias
+ *    summary: Obtiene todos los turnos
  *    description: ""
  *    produces: ["application/json"]
  *    responses:
@@ -31,7 +33,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/CategoriaMovimiento"
+ *            $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -43,16 +45,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /categorias-movimientos/{categoraId}:
+ * /turnos/{turnoId}:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene categoria por id
+ *    summary: Obtiene turno por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: categoraId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la categoria"
+ *        description: "Id de la turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -60,7 +62,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -73,7 +75,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCategoriaMovimientoPorId),
+    check("id").custom(existeTurnoPorId),
     validarCampos,
   ],
   getById
@@ -81,10 +83,43 @@ router.get(
 
 /**
  * @swagger
- * /categorias-movimientos:
+ * /turnos/usuario/activo:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene el turno activo del usuario logueado
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: turnoId
+ *        in: "path"
+ *        description: "Id de la turno"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Turno"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/usuario/activo",
+  [validarJWT, validarCampos],
+  getTurnoActivoByUser
+);
+
+/**
+ * @swagger
+ * /turnos:
  *  post:
  *    tags: ["Tesoreria"]
- *    summary: Crear una nuevo categoria
+ *    summary: Crear una nuevo turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
@@ -93,12 +128,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -110,18 +145,9 @@ router.post(
   "/",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("esEgreso", "El esGreso debe ser boolean").optional().isBoolean(),
-    check("esIngreso", "El esIngreso debe ser boolean").optional().isBoolean(),
-    check("visibleCaja", "El visibleCaja debe ser boolean")
-      .optional()
-      .isBoolean(),
-    check("afectaArqueo", "El afectaArqueo debe ser boolean")
-      .optional()
-      .isBoolean(),
-    check("afectaEstadistica", "El afectaEstadistica debe ser boolean")
-      .optional()
-      .isBoolean(),
+    // va tomar del login
+    // check("sucursal._id", "No es un id de Mongo").isMongoId(),
+    // check("sucursal._id").custom(existeSucursalPorId),
     validarCampos,
   ],
   add
@@ -129,16 +155,16 @@ router.post(
 
 /**
  * @swagger
- * /categorias-movimientos/{categoriaId}:
+ * /turnos/{turnoId}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Actualizar un categoria
+ *    summary: Actualizar un turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: categoriaId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id del categoria"
+ *        description: "Id del turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -147,12 +173,12 @@ router.post(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -164,9 +190,11 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
-    check("id", "No es un id de Mongo").isMongoId(),
-    check("id").custom(existeCategoriaMovimientoPorId),
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeTurnoPorId),
+    check("sucursal._id", "No es un id de Mongo").isMongoId(),
+    check("sucursal._id").custom(existeSucursalPorId),
+    check("fechaCierre").notEmpty().isISO8601().toDate(),
     validarCampos,
   ],
   update
@@ -174,29 +202,29 @@ router.put(
 
 /**
  * @swagger
- * /categorias-movimientos/change-status/{categoraId}/{estado}:
+ * /turnos/change-status/{turnoId}/{estado}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Cambiar el estado de una categoria movimiento
+ *    summary: Cambiar el estado de una turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: categoraId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la categoria movimiento"
+ *        description: "Id de laturno"
  *        required: true
  *        type: integer
  *        format: int64
  *      - name: estado
  *        in: "path"
- *        description: "Nuevo estado de la categoria movimiento"
+ *        description: "Nuevo estado de la turno"
  *        required: true
  *        type: boolean
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/CategoriaMovimiento"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -210,7 +238,7 @@ router.put(
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCategoriaMovimientoPorId),
+    check("id").custom(existeTurnoPorId),
     check("status", "El estado es obligatorio").not().isEmpty(),
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,

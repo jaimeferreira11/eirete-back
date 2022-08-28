@@ -155,8 +155,9 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id", "No es un id de Mongo válido").isMongoId(),
     check("id").custom(existeCajaPorId),
+    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("sucursal._id", "No es un id de Mongo").isMongoId(),
     check("sucursal._id").custom(existeSucursalPorId),
     validarCampos,
