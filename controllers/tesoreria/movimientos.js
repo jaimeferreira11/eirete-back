@@ -10,23 +10,15 @@ const getAll = async (req, res = response) => {
     paginado = true,
     orderBy = "fechaAlta",
     direction = -1,
-    estado = true,
-    search = "",
+    esIngreso = false,
+    esGasto = true,
   } = req.query;
 
-  let query = { estado };
+  const query = {
+    $and: [{ esIngreso: esIngreso }, { esGasto: esGasto }],
+  };
 
-  if (search) {
-    const regex = {
-      $regex: ".*" + skipAcentAndSpace(search) + ".*",
-      $options: "i",
-    };
-    query = {
-      $or: [{ descripcion: regex }],
-      $and: [{ estado: estado }],
-    };
-  }
-
+  console.log(query);
   if (paginado == "true") {
     const [total, data] = await Promise.all([
       Movimiento.countDocuments(query),
