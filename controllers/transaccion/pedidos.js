@@ -259,6 +259,93 @@ const getByCliente = async (req, res = response) => {
   }
 };
 
+const getByEstadoDelivery = async (req, res = response) => {
+  const { estadoDelivery } = req.params;
+  const {
+    limite = 10,
+    desde = 0,
+    paginado = "true",
+    orderBy = "fechaAlta",
+    direction = -1,
+  } = req.query;
+
+  let query = {
+    estadoDelivery,
+    estadoPedido: {
+      $in: [
+        EstadoPedido.PENDIENTE,
+        EstadoPedido.PAGADO,
+        EstadoPedido.FACTURADO,
+      ],
+    },
+  };
+
+  if (paginado == "true") {
+    const [total, data] = await Promise.all([
+      Pedido.countDocuments(query),
+      Pedido.find(query)
+        .populate({
+          path: "cliente",
+          select: "-__v",
+          populate: {
+            path: "persona",
+            select: "-__v",
+          },
+        })
+        .populate({
+          path: "detalles",
+          select: "-__v",
+          populate: {
+            path: "articulo",
+            select: "-__v",
+            populate: {
+              path: "lineaArticulo",
+              select: "-__v",
+            },
+          },
+        })
+        .populate("sucursal", "descripcion")
+        .populate("usuarioAlta", "username")
+        .populate("usuarioModif", "username")
+        .skip(Number(desde))
+        .limit(Number(limite))
+        .sort({ [orderBy]: direction }),
+    ]);
+
+    res.json({
+      total,
+      data,
+    });
+  } else {
+    const data = await Pedido.find(query)
+      .populate({
+        path: "cliente",
+        select: "-__v",
+        populate: {
+          path: "persona",
+          select: "-__v",
+        },
+      })
+      .populate({
+        path: "detalles",
+        select: "-__v",
+        populate: {
+          path: "articulo",
+          select: "-__v",
+          populate: {
+            path: "lineaArticulo",
+            select: "-__v",
+          },
+        },
+      })
+      .populate("sucursal", "descripcion")
+      .populate("usuarioAlta", "username")
+      .populate("usuarioModif", "username")
+      .sort({ orderBy: direction });
+    res.json(data);
+  }
+};
+
 const add = async (req, res = response) => {
   let { ...pedidoData } = req.body;
 
@@ -396,6 +483,18 @@ const changeStatus = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const changeEstadoDelivery = async (req, res = response) => {
+  const { id, estadoDelivery } = req.params;
+
+  const modelBorrado = await Pedido.findByIdAndUpdate(
+    id,
+    { estadoDelivery },
+    { new: true }
+  );
+
+  res.json(modelBorrado);
+};
+
 /// Metodos internos
 const calcularTotales = (pedido = Pedido) => {
   const { detalles = [PedidoDetalle] } = pedido;
@@ -467,5 +566,7 @@ module.exports = {
   getById,
   getByNro,
   getByCliente,
+  getByEstadoDelivery,
   changeStatus,
+  changeEstadoDelivery,
 };

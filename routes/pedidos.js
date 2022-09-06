@@ -10,6 +10,8 @@ const {
   getByNro,
   getByCliente,
   changeStatus,
+  getByEstadoDelivery,
+  changeEstadoDelivery,
 } = require("../controllers/transaccion/pedidos");
 const {
   existeArticuloPorId,
@@ -21,6 +23,7 @@ const {
   TipoPedido,
   TipoFactura,
   EstadoPedido,
+  EstadoDelivery,
 } = require("../helpers/constants");
 
 const router = Router();
@@ -165,6 +168,47 @@ router.get(
     validarCampos,
   ],
   getByCliente
+);
+
+/**
+ * @swagger
+ * /pedidos/search/estado-delivery/{estadoDelivery}:
+ *  get:
+ *    tags: ["Transaccion"]
+ *    summary: Obtiene pedidos del tipo delivery por estado
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: estadoDelivery
+ *        in: "path"
+ *        description: "Estado delivery del pedido"
+ *        required: true
+ *        type: String
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Pedido"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/search/estado-delivery/:estadoDelivery",
+  [
+    validarJWT,
+    check("estadoDelivery", "Estado deL DELIVERY no valido").isIn([
+      EstadoDelivery.EN_ESPERA,
+      EstadoDelivery.EN_CAMINO,
+      EstadoDelivery.ENTREGADO,
+      EstadoDelivery.PERDIDO,
+    ]),
+    validarCampos,
+  ],
+  getByEstadoDelivery
 );
 
 /**
@@ -336,6 +380,58 @@ router.put(
     validarCampos,
   ],
   changeStatus
+);
+
+/**
+ * @swagger
+ * /pedidos/change-estado-delivery/{pedidoId}/{estadoDelivery}:
+ *  put:
+ *    tags: ["Transaccion"]
+ *    summary: Cambiar el estado de delivery de un pedido
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: pedidoId
+ *        in: "path"
+ *        description: "Id del pedido"
+ *        required: true
+ *        type: string
+ *      - name: estadoDelivery
+ *        in: "path"
+ *        description: "Nuevo estado del pedido"
+ *        required: true
+ *        type: string
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Pedido"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
+router.put(
+  "/change-estado-delivery/:id/:estadoDelivery",
+  [
+    validarJWT,
+    esAdminRole,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existPedidoPorId),
+    check("estadoDelivery", "El estado delivery es obligatorio")
+      .not()
+      .isEmpty(),
+    check("estadoDelivery", "Estado delivery no valido").isIn([
+      EstadoDelivery.EN_ESPERA,
+      EstadoDelivery.EN_CAMINO,
+      EstadoDelivery.ENTREGADO,
+      EstadoDelivery.PERDIDO,
+    ]),
+    validarCampos,
+  ],
+  changeEstadoDelivery
 );
 
 module.exports = router;
