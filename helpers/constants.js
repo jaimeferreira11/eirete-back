@@ -21,7 +21,7 @@ const EstadoPedido = {
 const EstadoDelivery = {
   EN_ESPERA: "EN ESPERA",
   EN_CAMINO: "EN CAMINO",
-  ENTREGADOO: "ENTREGADO",
+  ENTREGADO: "ENTREGADO",
   PERDIDO: "PERDIDO",
 };
 
