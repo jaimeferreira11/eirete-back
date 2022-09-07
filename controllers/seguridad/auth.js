@@ -8,7 +8,7 @@ const { Usuario, Perfil, Menu, Turno } = require("../../models");
 
 const { generarJWT } = require("../../helpers/generar-jwt");
 const { googleVerify } = require("../../helpers/google-verify");
-const { ObtenerOrCrearTurno } = require("../tesoreria/turnos");
+const { obtenerOrCrearTurno } = require("../tesoreria/turnos");
 
 const login = async (req, res = response) => {
   const { username, password } = req.body;
@@ -60,7 +60,7 @@ const login = async (req, res = response) => {
       .sort({ orden: 1 });
 
     // Buscar el turno del usuario
-    const turnoActivo = await ObtenerOrCrearTurno(usuario);
+    const turnoActivo = await obtenerOrCrearTurno(usuario);
 
     res.json({
       usuario,
@@ -144,7 +144,7 @@ const validarTokenUsuario = async (req, res = response) => {
     .sort({ orden: 1 });
 
   // Buscar el turno del usuario
-  const turnoActivo = await ObtenerOrCrearTurno(usuario);
+  const turnoActivo = await obtenerOrCrearTurno(usuario);
 
   res.json({
     usuario: usuario,

@@ -21,7 +21,7 @@ const {
   TipoImpuesto,
 } = require("../../helpers/constants");
 const { updatePersona, addPersona } = require("../catastro/personas");
-const { ObtenerOrCrearTurno } = require("../tesoreria/turnos");
+const { obtenerOrCrearTurno } = require("../tesoreria/turnos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -448,7 +448,7 @@ const add = async (req, res = response) => {
     const newModel = new Pedido(pedidoData);
 
     /** Buscar si existe un turno activo del usuario */
-    const turnoActivo = await ObtenerOrCrearTurno(req.usuario);
+    const turnoActivo = await obtenerOrCrearTurno(req.usuario);
 
     pedidoData.turno = turnoActivo._id;
 

@@ -8,7 +8,7 @@ const {
 } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
 const { EstadoPedido } = require("../../helpers/constants");
-const { ObtenerOrCrearTurno } = require("./turnos");
+const { obtenerOrCrearTurno } = require("./turnos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -110,7 +110,7 @@ const add = async (req, res = response) => {
   try {
     req.body.usuarioAlta = req.usuario._id;
 
-    const turnoActivo = await ObtenerOrCrearTurno(req.usuario);
+    const turnoActivo = await obtenerOrCrearTurno(req.usuario);
 
     if (!turnoActivo) {
       return res.status(400).json({
