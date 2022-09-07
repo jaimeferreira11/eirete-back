@@ -145,7 +145,7 @@ const agregarTurno = async (usuario = Usuario) => {
   }
 };
 
-const ObtenerOrCrearTurno = async (usuario = Usuario) => {
+const obtenerOrCrearTurno = async (usuario = Usuario) => {
   const turnoActivo = await Turno.findOne({
     usuarioAlta: usuario._id,
     estado: true,
@@ -166,5 +166,5 @@ module.exports = {
   update,
   changeStatus,
   agregarTurno,
-  ObtenerOrCrearTurno,
+  obtenerOrCrearTurno,
 };

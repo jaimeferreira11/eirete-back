@@ -1,7 +1,7 @@
 const { response } = require("express");
 const { Movimiento, CategoriaMovimiento } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
-const { ObtenerOrCrearTurno } = require("./turnos");
+const { obtenerOrCrearTurno } = require("./turnos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -10,8 +10,8 @@ const getAll = async (req, res = response) => {
     paginado = true,
     orderBy = "fechaAlta",
     direction = -1,
-    esIngreso = false,
-    esGasto = true,
+    esIngreso,
+    esGasto,
   } = req.query;
 
   const query = {
@@ -19,6 +19,7 @@ const getAll = async (req, res = response) => {
   };
 
   console.log(query);
+
   if (paginado == "true") {
     const [total, data] = await Promise.all([
       Movimiento.countDocuments(query),
@@ -68,15 +69,20 @@ const add = async (req, res = response) => {
   const categoria = await CategoriaMovimiento.findById(req.body.categoria._id);
   req.body.descripcion = descripcion;
   req.body.usuarioAlta = req.usuario._id;
+  req.body.esGasto = categoria.esGasto;
+  req.body.esIngreso = categoria.esIngreso;
 
-  const turnoActivo = await ObtenerOrCrearTurno(usuario);
+  const turnoActivo = await obtenerOrCrearTurno(req.usuario);
+
+  console.log("categoria", categoria);
 
   const newModel = new Movimiento({
-    esGasto: categoria.esGasto,
-    esIngreso: categoria.esIngreso,
     turno: turnoActivo._id,
     ...req.body,
   });
+  newModel.esGasto = categoria.esGasto;
+  newModel.esIngreso = categoria.esIngreso;
+  console.log("newModel", newModel);
 
   // Guardar DB
   await newModel.save();
