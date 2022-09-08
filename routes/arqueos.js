@@ -7,6 +7,7 @@ const {
   add,
   getAll,
   getById,
+  getLastByUser,
   update,
   changeStatus,
 } = require("../controllers/tesoreria/arqueos");
@@ -83,6 +84,28 @@ router.get(
   ],
   getById
 );
+
+/**
+ * @swagger
+ * /arqueos/search/last-by-user:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene el ultimo arqueo del usuario logueado
+ *    description: ""
+ *    produces: ["application/json"]
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Arqueo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get("/search/last-by-user", [validarJWT, validarCampos], getLastByUser);
 
 /**
  * @swagger
