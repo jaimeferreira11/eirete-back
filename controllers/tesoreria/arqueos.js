@@ -1,4 +1,6 @@
 const { response } = require("express");
+const dayjs = require("dayjs");
+
 const {
   Arqueo,
   Turno,
@@ -7,6 +9,7 @@ const {
   Pedido,
 } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+const { toDate } = require("../../helpers/format-helper");
 const { EstadoPedido } = require("../../helpers/constants");
 const { obtenerOrCrearTurno } = require("./turnos");
 
@@ -19,6 +22,8 @@ const getAll = async (req, res = response) => {
     direction = -1,
     estado = true,
     search = "",
+    fechaDesde,
+    fechaHasta,
   } = req.query;
 
   let query = { estado };
@@ -33,6 +38,14 @@ const getAll = async (req, res = response) => {
       $and: [{ estado: estado }],
     };
   }
+
+  if (fechaDesde && fechaHasta) {
+    query.fechaAlta = {
+      $gte: dayjs(fechaDesde).hour(23).minute(59).format(),
+      $lt: dayjs(fechaHasta).hour(23).minute(59).format(),
+    };
+  }
+  console.log(query);
 
   if (paginado == "true") {
     const [total, data] = await Promise.all([
@@ -87,6 +100,29 @@ const getAll = async (req, res = response) => {
 const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Arqueo.findById(id)
+    .populate({
+      path: "stock",
+      select: "-__v",
+      populate: {
+        path: "articulo",
+        select: "-__v",
+        populate: {
+          path: "lineaArticulo",
+          select: "-__v",
+        },
+      },
+    })
+    .populate("turno", "-__v")
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+
+  res.json(modelDB);
+};
+
+const getLastByUser = async (req, res = response) => {
+  const { id } = req.params;
+  const modelDB = await Arqueo.findOne({ usuarioAlta: req.usuario._id })
+    .sort({ fechaAlta: -1 })
     .populate({
       path: "stock",
       select: "-__v",
@@ -228,6 +264,7 @@ module.exports = {
   add,
   getAll,
   getById,
+  getLastByUser,
   update,
   changeStatus,
 };
