@@ -1,8 +1,8 @@
-const { response } = require("express");
-const mongoose = require("mongoose");
+const { response } = require('express');
+const mongoose = require('mongoose');
 
-const ObjectId = require("mongoose").Types.ObjectId;
-const conn = require("../../database/config");
+const ObjectId = require('mongoose').Types.ObjectId;
+const conn = require('../../database/config');
 
 const {
   Pedido,
@@ -11,26 +11,26 @@ const {
   Cliente,
   Persona,
   Turno,
-} = require("../../models");
-const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+} = require('../../models');
+const { skipAcentAndSpace } = require('../../helpers/strings-helper');
 const {
   ClienteOcasional,
   TipoPedido,
   EstadoPedido,
   EstadoDelivery,
   TipoImpuesto,
-} = require("../../helpers/constants");
-const { updatePersona, addPersona } = require("../catastro/personas");
-const { obtenerOrCrearTurno } = require("../tesoreria/turnos");
+} = require('../../helpers/constants');
+const { updatePersona, addPersona } = require('../catastro/personas');
+const { obtenerOrCrearTurno } = require('../tesoreria/turnos');
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
-    paginado = "true",
-    orderBy = "fechaAlta",
+    paginado = 'true',
+    orderBy = 'fechaAlta',
     direction = -1,
-    search = "",
+    search = '',
   } = req.query;
 
   let query = {};
@@ -43,33 +43,33 @@ const getAll = async (req, res = response) => {
     query = { nro: search };
   }
 
-  if (paginado == "true") {
+  if (paginado == 'true') {
     const [total, data] = await Promise.all([
       Pedido.countDocuments(query),
       Pedido.find(query)
         .populate({
-          path: "cliente",
-          select: "-__v",
+          path: 'cliente',
+          select: '-__v',
           populate: {
-            path: "persona",
-            select: "-__v",
+            path: 'persona',
+            select: '-__v',
           },
         })
         .populate({
-          path: "detalles",
-          select: "-__v",
+          path: 'detalles',
+          select: '-__v',
           populate: {
-            path: "articulo",
-            select: "-__v",
+            path: 'articulo',
+            select: '-__v',
             populate: {
-              path: "lineaArticulo",
-              select: "-__v",
+              path: 'lineaArticulo',
+              select: '-__v',
             },
           },
         })
-        .populate("sucursal", "descripcion")
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('sucursal', 'descripcion')
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ [orderBy]: direction }),
@@ -82,28 +82,28 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Pedido.find(query)
       .populate({
-        path: "cliente",
-        select: "-__v",
+        path: 'cliente',
+        select: '-__v',
         populate: {
-          path: "persona",
-          select: "-__v",
+          path: 'persona',
+          select: '-__v',
         },
       })
       .populate({
-        path: "detalles",
-        select: "-__v",
+        path: 'detalles',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
           populate: {
-            path: "lineaArticulo",
-            select: "-__v",
+            path: 'lineaArticulo',
+            select: '-__v',
           },
         },
       })
-      .populate("sucursal", "descripcion")
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('sucursal', 'descripcion')
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .sort({ orderBy: direction });
     res.json(data);
   }
@@ -113,28 +113,28 @@ const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Pedido.findById(id)
     .populate({
-      path: "cliente",
-      select: "-__v",
+      path: 'cliente',
+      select: '-__v',
       populate: {
-        path: "persona",
-        select: "-__v",
+        path: 'persona',
+        select: '-__v',
       },
     })
     .populate({
-      path: "detalles",
-      select: "-__v",
+      path: 'detalles',
+      select: '-__v',
       populate: {
-        path: "articulo",
-        select: "-__v",
+        path: 'articulo',
+        select: '-__v',
         populate: {
-          path: "lineaArticulo",
-          select: "-__v",
+          path: 'lineaArticulo',
+          select: '-__v',
         },
       },
     })
-    .populate("sucursal", "descripcion")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('sucursal', 'descripcion')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   if (!modelDB) {
     return res.status(404).json({
@@ -149,28 +149,28 @@ const getByNro = async (req, res = response) => {
   const { nro } = req.params;
   const modelDB = await Pedido.findOne({ nro })
     .populate({
-      path: "cliente",
-      select: "-__v",
+      path: 'cliente',
+      select: '-__v',
       populate: {
-        path: "persona",
-        select: "-__v",
+        path: 'persona',
+        select: '-__v',
       },
     })
     .populate({
-      path: "detalles",
-      select: "-__v",
+      path: 'detalles',
+      select: '-__v',
       populate: {
-        path: "articulo",
-        select: "-__v",
+        path: 'articulo',
+        select: '-__v',
         populate: {
-          path: "lineaArticulo",
-          select: "-__v",
+          path: 'lineaArticulo',
+          select: '-__v',
         },
       },
     })
-    .populate("sucursal", "descripcion")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('sucursal', 'descripcion')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   if (!modelDB) {
     return res.status(404).json({
@@ -186,39 +186,39 @@ const getByCliente = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
-    paginado = "true",
-    orderBy = "fecha",
+    paginado = 'true',
+    orderBy = 'fecha',
     direction = -1,
   } = req.query;
 
-  if (paginado == "true") {
+  if (paginado == 'true') {
     const [total, data] = await Promise.all([
       Pedido.countDocuments({ cliente: id }),
       Pedido.find({ cliente: id })
         .populate({
-          path: "cliente",
-          select: "-__v",
+          path: 'cliente',
+          select: '-__v',
           populate: {
-            path: "persona",
-            select: "-__v",
+            path: 'persona',
+            select: '-__v',
           },
         })
         .populate({
-          path: "detalles",
-          select: "-__v",
+          path: 'detalles',
+          select: '-__v',
           populate: {
-            path: "articulo",
-            select: "-__v",
+            path: 'articulo',
+            select: '-__v',
             populate: {
-              path: "lineaArticulo",
-              select: "-__v",
+              path: 'lineaArticulo',
+              select: '-__v',
             },
           },
         })
-        .populate("turno", "-__v")
-        .populate("sucursal", "descripcion")
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('turno', '-__v')
+        .populate('sucursal', 'descripcion')
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ [orderBy]: direction }),
@@ -231,29 +231,29 @@ const getByCliente = async (req, res = response) => {
   } else {
     const data = await Pedido.find({ cliente: id })
       .populate({
-        path: "cliente",
-        select: "-__v",
+        path: 'cliente',
+        select: '-__v',
         populate: {
-          path: "persona",
-          select: "-__v",
+          path: 'persona',
+          select: '-__v',
         },
       })
       .populate({
-        path: "detalles",
-        select: "-__v",
+        path: 'detalles',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
           populate: {
-            path: "lineaArticulo",
-            select: "-__v",
+            path: 'lineaArticulo',
+            select: '-__v',
           },
         },
       })
-      .populate("turno", "-__v")
-      .populate("sucursal", "descripcion")
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('turno', '-__v')
+      .populate('sucursal', 'descripcion')
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .sort({ orderBy: direction });
     res.json(data);
   }
@@ -264,9 +264,10 @@ const getByEstadoDelivery = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
-    paginado = "true",
-    orderBy = "fechaAlta",
+    paginado = 'true',
+    orderBy = 'fechaAlta',
     direction = -1,
+    search = '',
   } = req.query;
 
   let query = {
@@ -280,33 +281,37 @@ const getByEstadoDelivery = async (req, res = response) => {
     },
   };
 
-  if (paginado == "true") {
+  if (search) {
+    query = { ...query, nro: search };
+  }
+
+  if (paginado == 'true') {
     const [total, data] = await Promise.all([
       Pedido.countDocuments(query),
       Pedido.find(query)
         .populate({
-          path: "cliente",
-          select: "-__v",
+          path: 'cliente',
+          select: '-__v',
           populate: {
-            path: "persona",
-            select: "-__v",
+            path: 'persona',
+            select: '-__v',
           },
         })
         .populate({
-          path: "detalles",
-          select: "-__v",
+          path: 'detalles',
+          select: '-__v',
           populate: {
-            path: "articulo",
-            select: "-__v",
+            path: 'articulo',
+            select: '-__v',
             populate: {
-              path: "lineaArticulo",
-              select: "-__v",
+              path: 'lineaArticulo',
+              select: '-__v',
             },
           },
         })
-        .populate("sucursal", "descripcion")
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('sucursal', 'descripcion')
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ [orderBy]: direction }),
@@ -319,28 +324,28 @@ const getByEstadoDelivery = async (req, res = response) => {
   } else {
     const data = await Pedido.find(query)
       .populate({
-        path: "cliente",
-        select: "-__v",
+        path: 'cliente',
+        select: '-__v',
         populate: {
-          path: "persona",
-          select: "-__v",
+          path: 'persona',
+          select: '-__v',
         },
       })
       .populate({
-        path: "detalles",
-        select: "-__v",
+        path: 'detalles',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
           populate: {
-            path: "lineaArticulo",
-            select: "-__v",
+            path: 'lineaArticulo',
+            select: '-__v',
           },
         },
       })
-      .populate("sucursal", "descripcion")
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('sucursal', 'descripcion')
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .sort({ orderBy: direction });
     res.json(data);
   }
@@ -352,8 +357,8 @@ const add = async (req, res = response) => {
   /* Verificar cliente*/
   if (pedidoData.cliente.persona.nroDoc != ClienteOcasional) {
     const cliente = await Cliente.findById(pedidoData.cliente._id).populate(
-      "persona",
-      "-__v"
+      'persona',
+      '-__v'
     );
     let crearNuevoCliente = true;
     if (!cliente) {
@@ -362,12 +367,12 @@ const add = async (req, res = response) => {
         nroDoc: pedidoData.cliente.persona.nroDoc,
       });
       if (!existePersona) {
-        console.log("No existe persona, crear....");
+        console.log('No existe persona, crear....');
         // crea la persona
         const newPersonaModel = new Persona({ ...pedidoData.cliente.persona });
         existePersona = await addPersona(newPersonaModel, req.usuario._id);
       } else {
-        console.log("Existe persona, verificar si ya es cliente...");
+        console.log('Existe persona, verificar si ya es cliente...');
         const existeCliente = await Cliente.findOne({
           persona: existePersona._id,
         });
@@ -391,7 +396,7 @@ const add = async (req, res = response) => {
       // actualizar cliente
       if (!cliente.persona.ruc && pedidoData.cliente.persona.ruc) {
         cliente.persona.ruc = pedidoData.cliente.persona.ruc;
-        console.log("Actualizando ruc del cliente", cliente.persona.ruc);
+        console.log('Actualizando ruc del cliente', cliente.persona.ruc);
 
         await updatePersona(cliente.persona, req.usuario._id);
       }
@@ -473,7 +478,7 @@ const add = async (req, res = response) => {
 const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
 
-  const { motivoCancelacion = "" } = req.body;
+  const { motivoCancelacion = '' } = req.body;
   const modelBorrado = await Pedido.findByIdAndUpdate(
     id,
     { estadoPedido: status, motivoCancelacion },
@@ -525,22 +530,22 @@ const verificarStockPedido = async (detalles, sucursalId, session) => {
       const articuloSucursal = await ArticuloSucursal.findOne({
         sucursal: sucursalId,
       }).populate({
-        path: "articulos",
-        select: "-__v",
+        path: 'articulos',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
         },
       });
       if (!articuloSucursal)
-        throw new Error("No se encontro registros para la sucursal");
+        throw new Error('No se encontro registros para la sucursal');
 
       const isFound = articuloSucursal.articulos.filter(
         (art) => art.articulo._id == detalle.articulo._id
       );
 
       if (!isFound || isFound.length == 0)
-        throw new Error("El articulo no existe en la sucursal");
+        throw new Error('El articulo no existe en la sucursal');
 
       const stockDisponible = isFound[0].stock - isFound[0].stockBloqueado;
       if (stockDisponible < detalle.cantidad) {

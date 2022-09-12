@@ -19,8 +19,8 @@ const EstadoPedido = {
   REVERSADO: "REVERSADO",
 };
 const EstadoDelivery = {
-  EN_ESPERA: "EN ESPERA",
-  EN_CAMINO: "EN CAMINO",
+  EN_ESPERA: "EN_ESPERA",
+  EN_CAMINO: "EN_CAMINO",
   ENTREGADO: "ENTREGADO",
   PERDIDO: "PERDIDO",
 };
