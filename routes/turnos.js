@@ -7,22 +7,24 @@ const {
   add,
   getAll,
   getById,
+  getTurnoActivoByUser,
   update,
   changeStatus,
-} = require("../controllers/tesoreria/cajas");
+} = require("../controllers/tesoreria/turnos");
 const {
   existeSucursalPorId,
-  existeCajaPorId,
+  existeTurnoPorId,
+  existeUsuarioPorId,
 } = require("../helpers/db-validators");
 
 const router = Router();
 
 /**
  * @swagger
- * /cajas:
+ * /turnos:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene todos los cajas
+ *    summary: Obtiene todos los turnos
  *    description: ""
  *    produces: ["application/json"]
  *    responses:
@@ -31,7 +33,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/Caja"
+ *            $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -43,16 +45,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /cajas/{cajaId}:
+ * /turnos/{turnoId}:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene caja por id
+ *    summary: Obtiene turno por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la caja"
+ *        description: "Id de la turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -60,7 +62,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -73,7 +75,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
+    check("id").custom(existeTurnoPorId),
     validarCampos,
   ],
   getById
@@ -81,10 +83,43 @@ router.get(
 
 /**
  * @swagger
- * /cajas:
+ * /turnos/usuario/activo:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene el turno activo del usuario logueado
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: turnoId
+ *        in: "path"
+ *        description: "Id de la turno"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Turno"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/usuario/activo",
+  [validarJWT, validarCampos],
+  getTurnoActivoByUser
+);
+
+/**
+ * @swagger
+ * /turnos:
  *  post:
  *    tags: ["Tesoreria"]
- *    summary: Crear una nuevo caja
+ *    summary: Crear una nuevo turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
@@ -93,12 +128,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -110,9 +145,9 @@ router.post(
   "/",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("sucursal._id", "No es un id de Mongo").isMongoId(),
-    check("sucursal._id").custom(existeSucursalPorId),
+    // va tomar del login
+    // check("sucursal._id", "No es un id de Mongo").isMongoId(),
+    // check("sucursal._id").custom(existeSucursalPorId),
     validarCampos,
   ],
   add
@@ -120,16 +155,16 @@ router.post(
 
 /**
  * @swagger
- * /cajas/{cajaId}:
+ * /turnos/{turnoId}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Actualizar un caja
+ *    summary: Actualizar un turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id del caja"
+ *        description: "Id del turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -138,12 +173,12 @@ router.post(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -156,10 +191,10 @@ router.put(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
-    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id").custom(existeTurnoPorId),
     check("sucursal._id", "No es un id de Mongo").isMongoId(),
     check("sucursal._id").custom(existeSucursalPorId),
+    check("fechaCierre").notEmpty().isISO8601().toDate(),
     validarCampos,
   ],
   update
@@ -167,29 +202,29 @@ router.put(
 
 /**
  * @swagger
- * /cajas/change-status/{cajaId}/{estado}:
+ * /turnos/change-status/{turnoId}/{estado}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Cambiar el estado de una caja
+ *    summary: Cambiar el estado de una turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de lacaja"
+ *        description: "Id de laturno"
  *        required: true
  *        type: integer
  *        format: int64
  *      - name: estado
  *        in: "path"
- *        description: "Nuevo estado de la caja"
+ *        description: "Nuevo estado de la turno"
  *        required: true
  *        type: boolean
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -203,7 +238,7 @@ router.put(
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
+    check("id").custom(existeTurnoPorId),
     check("status", "El estado es obligatorio").not().isEmpty(),
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,

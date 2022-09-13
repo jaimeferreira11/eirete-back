@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const diffHistory = require("mongoose-audit-trail");
+const { EstadoDelivery } = require("../../helpers/constants");
 
 const PedidoCounterSchema = Schema({
   seq: { type: Number, default: 0 },
@@ -57,8 +58,12 @@ const metodoPago = new Schema({
 
 const direccionEnvio = new Schema({
   direccion: {
-    type: Number,
-    required: [true, "El precio unitario es requerido"],
+    type: String,
+    required: [true, "La dirección es obligatoria"],
+  },
+  ciudad: {
+    type: String,
+    required: [true, "La ciudad es obligatoria"],
   },
   contacto: {
     type: String,
@@ -121,12 +126,20 @@ const PedidoSchema = new Schema({
   },
   estadoDelivery: {
     type: String,
-    emun: ["EN ESPERA", "EN CAMINO", "ENTREGADO", "PERDIDO"],
+    emun: [
+      EstadoDelivery.EN_ESPERA,
+      EstadoDelivery.EN_CAMINO,
+      EstadoDelivery.ENTREGADO,
+      EstadoDelivery.PERDIDO,
+    ],
   },
   direccionEnvio: {
     type: direccionEnvio,
   },
   obs: {
+    type: String,
+  },
+  motivoCancelacion: {
     type: String,
   },
   detalles: {
@@ -158,7 +171,11 @@ const PedidoSchema = new Schema({
     ref: "Usuario",
     required: true,
   },
-
+  turno: {
+    type: Schema.Types.ObjectId,
+    ref: "Turno",
+    required: [true, "El turno es obligatoria"],
+  },
   fechaModif: {
     type: Date,
   },

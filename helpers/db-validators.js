@@ -10,6 +10,11 @@ const {
   Sucursal,
   Caja,
   Ciudad,
+  Pedido,
+  CategoriaMovimiento,
+  Movimiento,
+  Arqueo,
+  Turno,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -220,6 +225,61 @@ const existeCiudadPorId = async (id) => {
 };
 
 /**
+ * Pedidos
+ */
+const existPedidoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Pedido.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Categoria movimientos
+ */
+const existeCategoriaMovimientoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await CategoriaMovimiento.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Movimientos
+ */
+const existeMovimientoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Movimiento.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Arqueos
+ */
+const existeArqueoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Arqueo.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Turnos
+ */
+const existeTurnoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Turno.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
  * Validar colecciones permitidas
  */
 const coleccionesPermitidas = (coleccion = "", colecciones = []) => {
@@ -290,4 +350,9 @@ module.exports = {
   existeLineaArticuloPorId,
   existeCajaPorId,
   existeCiudadPorId,
+  existPedidoPorId,
+  existeCategoriaMovimientoPorId,
+  existeMovimientoPorId,
+  existeArqueoPorId,
+  existeTurnoPorId,
 };

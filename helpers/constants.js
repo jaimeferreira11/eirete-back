@@ -19,9 +19,9 @@ const EstadoPedido = {
   REVERSADO: "REVERSADO",
 };
 const EstadoDelivery = {
-  EN_ESPERA: "EN ESPERA",
-  EN_CAMINO: "EN CAMINO",
-  ENTREGADOO: "ENTREGADO",
+  EN_ESPERA: "EN_ESPERA",
+  EN_CAMINO: "EN_CAMINO",
+  ENTREGADO: "ENTREGADO",
   PERDIDO: "PERDIDO",
 };
 
@@ -31,6 +31,22 @@ const TipoImpuesto = {
   0: { dividendo: 0 },
 };
 
+const EfectivoMoneda = {
+  50: "Gs. 50",
+  100: "Gs. 100",
+  500: "Gs. 500",
+  1000: "Gs. 1.000",
+};
+
+const EfectivobilleteMoneda = {
+  2000: "Gs. 2.000",
+  5000: "Gs. 5.000",
+  10000: "Gs. 10.000",
+  20000: "Gs. 20.000",
+  50000: "Gs. 50.000",
+  100000: "Gs. 100.000",
+};
+
 module.exports = {
   ClienteOcasional,
   TipoPedido,
@@ -38,4 +54,6 @@ module.exports = {
   EstadoDelivery,
   TipoImpuesto,
   TipoFactura,
+  EfectivoMoneda,
+  EfectivobilleteMoneda,
 };

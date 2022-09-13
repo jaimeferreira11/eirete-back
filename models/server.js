@@ -26,6 +26,11 @@ class Server {
       cajas: "/api/cajas",
       ciudades: "/api/ciudades",
       pedidos: "/api/pedidos",
+      categoriasMovimientos: "/api/categorias-movimientos",
+      movimientos: "/api/movimientos",
+      arqueos: "/api/arqueos",
+      turnos: "/api/turnos",
+      reportes: "/api/reportes",
     };
 
     // Conectar a base de datos
@@ -85,6 +90,14 @@ class Server {
     this.app.use(this.paths.cajas, require("../routes/cajas"));
     this.app.use(this.paths.ciudades, require("../routes/ciudades"));
     this.app.use(this.paths.pedidos, require("../routes/pedidos"));
+    this.app.use(
+      this.paths.categoriasMovimientos,
+      require("../routes/categorias-movimientos")
+    );
+    this.app.use(this.paths.movimientos, require("../routes/movimientos"));
+    this.app.use(this.paths.arqueos, require("../routes/arqueos"));
+    this.app.use(this.paths.turnos, require("../routes/turnos"));
+    this.app.use(this.paths.reportes, require("../routes/reportes"));
   }
 
   listen() {

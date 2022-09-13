@@ -9,20 +9,20 @@ const {
   getById,
   update,
   changeStatus,
-} = require("../controllers/tesoreria/cajas");
+} = require("../controllers/tesoreria/categoria-movimientos");
 const {
   existeSucursalPorId,
-  existeCajaPorId,
+  existeCategoriaMovimientoPorId,
 } = require("../helpers/db-validators");
 
 const router = Router();
 
 /**
  * @swagger
- * /cajas:
+ * /categorias-movimientos:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene todos los cajas
+ *    summary: Obtiene todos los categorias
  *    description: ""
  *    produces: ["application/json"]
  *    responses:
@@ -31,7 +31,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/Caja"
+ *            $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -43,16 +43,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /cajas/{cajaId}:
+ * /categorias-movimientos/{categoraId}:
  *  get:
  *    tags: ["Tesoreria"]
- *    summary: Obtiene caja por id
+ *    summary: Obtiene categoria por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: categoraId
  *        in: "path"
- *        description: "Id de la caja"
+ *        description: "Id de la categoria"
  *        required: true
  *        type: integer
  *        format: int64
@@ -60,7 +60,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -73,7 +73,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
+    check("id").custom(existeCategoriaMovimientoPorId),
     validarCampos,
   ],
   getById
@@ -81,10 +81,10 @@ router.get(
 
 /**
  * @swagger
- * /cajas:
+ * /categorias-movimientos:
  *  post:
  *    tags: ["Tesoreria"]
- *    summary: Crear una nuevo caja
+ *    summary: Crear una nuevo categoria
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
@@ -93,12 +93,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -111,8 +111,17 @@ router.post(
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("sucursal._id", "No es un id de Mongo").isMongoId(),
-    check("sucursal._id").custom(existeSucursalPorId),
+    check("esEgreso", "El esGreso debe ser boolean").optional().isBoolean(),
+    check("esIngreso", "El esIngreso debe ser boolean").optional().isBoolean(),
+    check("visibleCaja", "El visibleCaja debe ser boolean")
+      .optional()
+      .isBoolean(),
+    check("afectaArqueo", "El afectaArqueo debe ser boolean")
+      .optional()
+      .isBoolean(),
+    check("afectaEstadistica", "El afectaEstadistica debe ser boolean")
+      .optional()
+      .isBoolean(),
     validarCampos,
   ],
   add
@@ -120,16 +129,16 @@ router.post(
 
 /**
  * @swagger
- * /cajas/{cajaId}:
+ * /categorias-movimientos/{categoriaId}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Actualizar un caja
+ *    summary: Actualizar un categoria
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: categoriaId
  *        in: "path"
- *        description: "Id del caja"
+ *        description: "Id del categoria"
  *        required: true
  *        type: integer
  *        format: int64
@@ -138,12 +147,12 @@ router.post(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -155,11 +164,9 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
-    check("sucursal._id", "No es un id de Mongo").isMongoId(),
-    check("sucursal._id").custom(existeSucursalPorId),
+    check("id", "No es un id de Mongo").isMongoId(),
+    check("id").custom(existeCategoriaMovimientoPorId),
     validarCampos,
   ],
   update
@@ -167,29 +174,29 @@ router.put(
 
 /**
  * @swagger
- * /cajas/change-status/{cajaId}/{estado}:
+ * /categorias-movimientos/change-status/{categoraId}/{estado}:
  *  put:
  *    tags: ["Tesoreria"]
- *    summary: Cambiar el estado de una caja
+ *    summary: Cambiar el estado de una categoria movimiento
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: cajaId
+ *      - name: categoraId
  *        in: "path"
- *        description: "Id de lacaja"
+ *        description: "Id de la categoria movimiento"
  *        required: true
  *        type: integer
  *        format: int64
  *      - name: estado
  *        in: "path"
- *        description: "Nuevo estado de la caja"
+ *        description: "Nuevo estado de la categoria movimiento"
  *        required: true
  *        type: boolean
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Caja"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -203,7 +210,7 @@ router.put(
     validarJWT,
     esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCajaPorId),
+    check("id").custom(existeCategoriaMovimientoPorId),
     check("status", "El estado es obligatorio").not().isEmpty(),
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,

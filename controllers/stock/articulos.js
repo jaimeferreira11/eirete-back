@@ -23,8 +23,6 @@ const getAll = async (req, res = response) => {
 
   if (linea) query.lineaArticulo = ObjectId(linea);
 
-  console.log(query);
-
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       Articulo.countDocuments(query),
@@ -237,6 +235,7 @@ const getArticulosByQuery = async (req, res = response) => {
     }
   }, []);
 
+  lineasConArticulos.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
   res.json(lineasConArticulos);
 };
 
