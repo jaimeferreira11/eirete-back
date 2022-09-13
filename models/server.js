@@ -30,6 +30,7 @@ class Server {
       movimientos: "/api/movimientos",
       arqueos: "/api/arqueos",
       turnos: "/api/turnos",
+      reportes: "/api/reportes",
     };
 
     // Conectar a base de datos
@@ -96,6 +97,7 @@ class Server {
     this.app.use(this.paths.movimientos, require("../routes/movimientos"));
     this.app.use(this.paths.arqueos, require("../routes/arqueos"));
     this.app.use(this.paths.turnos, require("../routes/turnos"));
+    this.app.use(this.paths.reportes, require("../routes/reportes"));
   }
 
   listen() {

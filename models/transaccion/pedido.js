@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const diffHistory = require("mongoose-audit-trail");
+const { EstadoDelivery } = require("../../helpers/constants");
 
 const PedidoCounterSchema = Schema({
   seq: { type: Number, default: 0 },
@@ -125,7 +126,12 @@ const PedidoSchema = new Schema({
   },
   estadoDelivery: {
     type: String,
-    emun: ["EN ESPERA", "EN CAMINO", "ENTREGADO", "PERDIDO"],
+    emun: [
+      EstadoDelivery.EN_ESPERA,
+      EstadoDelivery.EN_CAMINO,
+      EstadoDelivery.ENTREGADO,
+      EstadoDelivery.PERDIDO,
+    ],
   },
   direccionEnvio: {
     type: direccionEnvio,
