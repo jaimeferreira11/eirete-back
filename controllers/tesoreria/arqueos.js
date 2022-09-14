@@ -1,5 +1,5 @@
-const { response } = require("express");
-const dayjs = require("dayjs");
+const { response } = require('express');
+const dayjs = require('dayjs');
 
 const {
   Arqueo,
@@ -7,21 +7,21 @@ const {
   ArticuloSucursal,
   Movimiento,
   Pedido,
-} = require("../../models");
-const { skipAcentAndSpace } = require("../../helpers/strings-helper");
-const { toDate } = require("../../helpers/format-helper");
-const { EstadoPedido } = require("../../helpers/constants");
-const { obtenerOrCrearTurno } = require("./turnos");
+} = require('../../models');
+const { skipAcentAndSpace } = require('../../helpers/strings-helper');
+const { toDate } = require('../../helpers/format-helper');
+const { EstadoPedido } = require('../../helpers/constants');
+const { obtenerOrCrearTurno } = require('./turnos');
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
-    orderBy = "fechaAlta",
+    orderBy = 'fechaAlta',
     direction = -1,
     estado = true,
-    search = "",
+    search = '',
     fechaDesde,
     fechaHasta,
   } = req.query;
@@ -30,8 +30,8 @@ const getAll = async (req, res = response) => {
 
   if (search) {
     const regex = {
-      $regex: ".*" + skipAcentAndSpace(search) + ".*",
-      $options: "i",
+      $regex: '.*' + skipAcentAndSpace(search) + '.*',
+      $options: 'i',
     };
     query = {
       $or: [{ descripcion: regex }],
@@ -47,25 +47,26 @@ const getAll = async (req, res = response) => {
   }
   console.log(query);
 
-  if (paginado == "true") {
+  if (paginado == 'true') {
     const [total, data] = await Promise.all([
       Arqueo.countDocuments(query),
       Arqueo.find(query)
         .populate({
-          path: "stock",
-          select: "-__v",
+          path: 'stock',
+          select: '-__v',
           populate: {
-            path: "articulo",
-            select: "-__v",
+            path: 'articulo',
+            select: '-__v',
             populate: {
-              path: "lineaArticulo",
-              select: "-__v",
+              path: 'lineaArticulo',
+              select: '-__v',
             },
           },
         })
-        .populate("turno", "-__v")
-        .populate("usuarioAlta", "username")
-        .populate("usuarioModif", "username")
+        .populate('turno', '-__v')
+        .populate('usuarioAlta', 'username')
+        .populate('usuarioModif', 'username')
+        .populate('sucursal', '_id descripcion')
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ [orderBy]: direction }),
@@ -78,20 +79,20 @@ const getAll = async (req, res = response) => {
   } else {
     const data = await Arqueo.find(query)
       .populate({
-        path: "stock",
-        select: "-__v",
+        path: 'stock',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
           populate: {
-            path: "lineaArticulo",
-            select: "-__v",
+            path: 'lineaArticulo',
+            select: '-__v',
           },
         },
       })
-      .populate("turno", "-__v")
-      .populate("usuarioAlta", "username")
-      .populate("usuarioModif", "username")
+      .populate('turno', '-__v')
+      .populate('usuarioAlta', 'username')
+      .populate('usuarioModif', 'username')
       .sort({ [orderBy]: direction });
     res.json(data);
   }
@@ -101,20 +102,20 @@ const getById = async (req, res = response) => {
   const { id } = req.params;
   const modelDB = await Arqueo.findById(id)
     .populate({
-      path: "stock",
-      select: "-__v",
+      path: 'stock',
+      select: '-__v',
       populate: {
-        path: "articulo",
-        select: "-__v",
+        path: 'articulo',
+        select: '-__v',
         populate: {
-          path: "lineaArticulo",
-          select: "-__v",
+          path: 'lineaArticulo',
+          select: '-__v',
         },
       },
     })
-    .populate("turno", "-__v")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('turno', '-__v')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   res.json(modelDB);
 };
@@ -124,20 +125,20 @@ const getLastByUser = async (req, res = response) => {
   const modelDB = await Arqueo.findOne({ usuarioAlta: req.usuario._id })
     .sort({ fechaAlta: -1 })
     .populate({
-      path: "stock",
-      select: "-__v",
+      path: 'stock',
+      select: '-__v',
       populate: {
-        path: "articulo",
-        select: "-__v",
+        path: 'articulo',
+        select: '-__v',
         populate: {
-          path: "lineaArticulo",
-          select: "-__v",
+          path: 'lineaArticulo',
+          select: '-__v',
         },
       },
     })
-    .populate("turno", "-__v")
-    .populate("usuarioAlta", "username")
-    .populate("usuarioModif", "username");
+    .populate('turno', '-__v')
+    .populate('usuarioAlta', 'username')
+    .populate('usuarioModif', 'username');
 
   res.json(modelDB);
 };
@@ -215,7 +216,7 @@ const add = async (req, res = response) => {
     });
 
     // debe cerrar el turno actual
-    console.log("Cerrar el turno activo");
+    console.log('Cerrar el turno activo');
     await Turno.findByIdAndUpdate(turnoActivo._id, {
       fechaCierre: Date.now(),
       estado: false,
