@@ -137,6 +137,7 @@ const getLastByUser = async (req, res = response) => {
       },
     })
     .populate('turno', '-__v')
+    .populate('sucursal', '_id descripcion')
     .populate('usuarioAlta', 'username')
     .populate('usuarioModif', 'username');
 
