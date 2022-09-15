@@ -1,4 +1,5 @@
 const { response } = require("express");
+const { ObjectId } = require("mongoose").Types;
 const dayjs = require("dayjs");
 
 const {
@@ -24,6 +25,7 @@ const getAll = async (req, res = response) => {
     search = "",
     fechaDesde,
     fechaHasta,
+    sucursalId,
   } = req.query;
 
   let query = { estado };
@@ -45,6 +47,8 @@ const getAll = async (req, res = response) => {
       $lt: dayjs(fechaHasta).hour(23).minute(59).format(),
     };
   }
+  if (sucursalId) query.sucursal = ObjectId(sucursalId);
+
   console.log(query);
 
   if (paginado == "true") {

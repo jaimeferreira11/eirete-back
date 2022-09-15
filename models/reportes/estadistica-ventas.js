@@ -5,6 +5,7 @@ class EstadisticaVentas {
   ventaPromedio = Number;
   cantPedidos = Number;
   cantArticulos = Number;
+  pedidos = [];
   articulosMasvendidos = [];
 }
 
