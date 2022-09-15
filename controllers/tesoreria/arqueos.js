@@ -1,6 +1,7 @@
 const { response } = require("express");
 const { ObjectId } = require("mongoose").Types;
 const dayjs = require("dayjs");
+const { response } = require("express");
 
 const {
   Arqueo,
@@ -70,6 +71,7 @@ const getAll = async (req, res = response) => {
         .populate("turno", "-__v")
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
+        .populate("sucursal", "_id descripcion")
         .skip(Number(desde))
         .limit(Number(limite))
         .sort({ [orderBy]: direction }),
@@ -140,6 +142,7 @@ const getLastByUser = async (req, res = response) => {
       },
     })
     .populate("turno", "-__v")
+    .populate("sucursal", "_id descripcion")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 
