@@ -15,6 +15,7 @@ const ArticuloSchema = new Schema({
     type: String,
     required: [true, "La descripcion es obligatoria"],
     unique: true,
+    uppercase: true,
   },
   codigoBarra: {
     type: String,
@@ -23,6 +24,7 @@ const ArticuloSchema = new Schema({
     type: Number,
     default: 1,
     unique: true,
+    uppercase: true,
   },
   unidadMedida: {
     type: String,

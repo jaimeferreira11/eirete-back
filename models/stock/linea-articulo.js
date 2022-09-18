@@ -5,6 +5,7 @@ const LineaArticuloSchema = Schema({
   descripcion: {
     type: String,
     unique: true,
+    uppercase: true,
     required: [true, "La descripcion es obligatoria"],
   },
   estado: {

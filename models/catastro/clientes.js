@@ -3,6 +3,7 @@ const { Schema, model } = require("mongoose");
 const direccion = new Schema({
   direccion: {
     type: String,
+    uppercase: true,
     required: [true, "La dirección es obligatoria"],
   },
   ciudad: {
