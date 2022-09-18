@@ -3,6 +3,7 @@ const { Schema, model } = require("mongoose");
 const CategoriaMovimientoSchema = Schema({
   descripcion: {
     type: String,
+    uppercase: true,
     required: [true, "La descripcion es obligatoria"],
   },
   estado: {

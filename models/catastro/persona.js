@@ -9,6 +9,7 @@ const PersonaSchema = Schema({
   },
   nombreApellido: {
     type: String,
+    uppercase: true,
     required: [true, "El nombre es obligatorio"],
   },
   tipoDoc: {
@@ -20,6 +21,7 @@ const PersonaSchema = Schema({
   sexo: {
     type: String,
     required: true,
+    uppercase: true,
     default: "M",
     emun: ["M", "F"],
   },

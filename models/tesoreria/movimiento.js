@@ -4,6 +4,7 @@ const diffHistory = require("mongoose-audit-trail");
 const MovimientoSchema = Schema({
   descripcion: {
     type: String,
+    uppercase: true,
     required: [true, "La descripcion es obligatoria"],
   },
   monto: {
