@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 const diffHistory = require("mongoose-audit-trail");
-const { EstadoDelivery } = require("../../helpers/constants");
+const { EstadoDelivery, MetodoPago } = require("../../helpers/constants");
 
 const PedidoCounterSchema = Schema({
   seq: { type: Number, default: 0 },
@@ -48,8 +48,13 @@ const metodoPago = new Schema({
   descripcion: {
     type: String,
     required: true,
-    default: "EFECTIVO",
-    emun: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "CHEQUE"],
+    default: MetodoPago.EFECTIVO,
+    emun: [
+      MetodoPago.EFECTIVO,
+      MetodoPago.TARJETA,
+      MetodoPago.TRANSFERENCIA,
+      MetodoPago.CHEQUE,
+    ],
   },
   referencia: {
     type: String,
