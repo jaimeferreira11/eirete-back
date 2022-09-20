@@ -1,7 +1,9 @@
 class EstadisticaVentas {
-  montoVendido = Number;
-  montoEfectivo = Number;
-  montoDeposito = Number;
+  montoTotalVendido = Number;
+  montoTotalEfectivo = Number;
+  montoTotalDeposito = Number;
+  montoPromedioEfectivo = Number;
+  montoPromedioDeposito = Number;
   ventaPromedio = Number;
   cantPedidos = Number;
   cantArticulos = Number;

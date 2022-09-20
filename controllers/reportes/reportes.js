@@ -2,12 +2,12 @@ const { response } = require("express");
 const { ObjectId } = require("mongoose").Types;
 const dayjs = require("dayjs");
 const { Pedido, EstadisticaVentas } = require("../../models");
-const { EstadoPedido } = require("../../helpers/constants");
+const { EstadoPedido, MetodoPago } = require("../../helpers/constants");
 
 const getEstadisticaVentas = async (req, res = response) => {
   const { fechaDesde, fechaHasta, sucursalId } = req.query;
 
-  const query = {
+  let query = {
     $and: [
       {
         fecha: {
@@ -21,11 +21,9 @@ const getEstadisticaVentas = async (req, res = response) => {
           { estadoPedido: EstadoPedido.FACTURADO },
         ],
       },
-      sucursalId
-        ? {
-            sucursal: ObjectId(sucursalId),
-          }
-        : {},
+      {
+        sucursal: sucursalId ? { $eq: ObjectId(sucursalId) } : { $ne: null },
+      },
     ],
   };
 
@@ -59,50 +57,52 @@ const getEstadisticaVentas = async (req, res = response) => {
         cantArticulos: {
           $sum: "$detalles.cantidad",
         },
-        montoEfectivo: {
-          $sum: "$metodosPago.importe", // TODO: filtrar por tipo de metodo de pago
-        },
-        montoDeposito: {
-          $sum: "$metodosPago.importe", // TODO: filtrar por tipo de metodo de pago
-        },
       },
     },
     {
       $group: {
         _id: null,
         cantPedidos: { $sum: 1 },
-        montoVendido: { $sum: "$importeTotal" },
+        montoTotalVendido: { $sum: "$importeTotal" },
         cantArticulos: {
           $sum: "$cantArticulos",
         },
         ventaPromedio: {
           $avg: "$importeTotal",
         },
-        //cantArticulos: { count: { $size: "$detalles" } },
       },
     },
   ]);
 
-  const efectivo = await Pedido.find({
-    query,
-  });
-  const deposito = await Pedido.find({
-    "metodosPago.descripcion": { $ne: "EFECTIVO" },
-  });
+  // Metodos de pago
+  let sumEfectivo = 0;
+  let sumDeposito = 0;
+  let contEfectivo = 0;
+  let contDeposito = 0;
+  let montoVuelto = 0;
 
-  const sumEfectivo = efectivo
-    .map((p) => p.metodosPago)
-    .map((m) => m)
-    .reduce((prev, next) => prev[0]?.importe + next[0]?.importe);
-
-  const sumDeposito = deposito
-    .map((p) => p.metodosPago)
-    .map((m) => m)
-    .reduce((prev, next) => prev[0]?.importe + next[0]?.importe);
+  await Pedido.find(query).then(async (listaPedidos) => {
+    listaPedidos.map((pedido = Pedido) => {
+      pedido.metodosPago.map((m) => {
+        if (m.descripcion == MetodoPago.EFECTIVO) {
+          sumEfectivo += m.importe;
+          contEfectivo++;
+        } else {
+          contDeposito++;
+          sumDeposito += m.importe;
+        }
+      });
+      montoVuelto += pedido.vuelto || 0;
+    });
+  });
 
   res.json({
-    montoEfectivo: sumEfectivo || 0,
-    montoDeposito: sumDeposito || 0,
+    montoTotalEfectivo: sumEfectivo - montoVuelto,
+    montoTotalDeposito: sumDeposito,
+    montoPromedioEfectivo: contEfectivo == 0 ? 0 : sumEfectivo / contEfectivo,
+    montoPromedioDeposito: contDeposito == 0 ? 0 : sumDeposito / contDeposito,
+    montoPromedioVuelto:
+      montoVuelto == 0 ? 0 : montoVuelto / resp[0].cantPedidos,
     ...resp[0],
   });
 };
