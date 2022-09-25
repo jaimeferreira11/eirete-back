@@ -25,6 +25,13 @@ const EstadoDelivery = {
   PERDIDO: "PERDIDO",
 };
 
+const MetodoPago = {
+  EFECTIVO: "EFECTIVO",
+  TARJETA: "TARJETA",
+  TRANSFERENCIA: "TRANSFERENCIA",
+  CHEQUE: "CHEQUE",
+};
+
 const TipoImpuesto = {
   5: { dividendo: 21 },
   10: { dividendo: 11 },
@@ -56,4 +63,5 @@ module.exports = {
   TipoFactura,
   EfectivoMoneda,
   EfectivobilleteMoneda,
+  MetodoPago,
 };

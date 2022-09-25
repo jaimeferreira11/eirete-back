@@ -38,6 +38,10 @@ const swaggerDefinition = {
       name: "Tesoreria",
       description: "",
     },
+    {
+      name: "Reportes",
+      description: "",
+    },
   ],
   schemes: ["http"],
 
@@ -408,6 +412,35 @@ const swaggerDefinition = {
         password: {
           type: "string",
           required: true,
+        },
+      },
+    },
+    EstadisticaVentas: {
+      type: "object",
+      properties: {
+        montoTotalVendido: {
+          type: "integer",
+          format: "int64",
+        },
+        montoTotalEfectivo: {
+          type: "integer",
+          format: "int64",
+        },
+        montoTotalDeposito: {
+          type: "integer",
+          format: "int64",
+        },
+        ventaPromedio: {
+          type: "integer",
+          format: "int64",
+        },
+        cantPedidos: {
+          type: "integer",
+          format: "int64",
+        },
+        cantArticulos: {
+          type: "integer",
+          format: "int64",
         },
       },
     },
