@@ -1,7 +1,7 @@
 const { response } = require("express");
 const { ObjectId } = require("mongoose").Types;
 const dayjs = require("dayjs");
-const { Pedido, EstadisticaVentas } = require("../../models");
+const { Pedido, EstadisticaVentas, PedidoDetalle } = require("../../models");
 const { EstadoPedido, MetodoPago } = require("../../helpers/constants");
 
 const getEstadisticaVentas = async (req, res = response) => {
@@ -27,59 +27,14 @@ const getEstadisticaVentas = async (req, res = response) => {
     ],
   };
 
-  const resp = await Pedido.aggregate([
-    {
-      $match: {
-        $or: [
-          {
-            estadoPedido: {
-              $in: [EstadoPedido.PAGADO, EstadoPedido.FACTURADO],
-            },
-          },
-          {
-            fecha: {
-              $gte: dayjs(fechaDesde).hour(23).minute(59).format(),
-              $lt: dayjs(fechaHasta).hour(23).minute(59).format(),
-            },
-          },
-        ],
-        $and: [
-          {
-            sucursal: sucursalId
-              ? { $eq: ObjectId(sucursalId) }
-              : { $ne: null },
-          },
-        ],
-      },
-    },
-    {
-      $addFields: {
-        cantArticulos: {
-          $sum: "$detalles.cantidad",
-        },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        cantPedidos: { $sum: 1 },
-        montoTotalVendido: { $sum: "$importeTotal" },
-        cantArticulos: {
-          $sum: "$cantArticulos",
-        },
-        ventaPromedio: {
-          $avg: "$importeTotal",
-        },
-      },
-    },
-  ]);
-
   // Metodos de pago
   let sumEfectivo = 0;
   let sumDeposito = 0;
   let contEfectivo = 0;
   let contDeposito = 0;
   let montoVuelto = 0;
+  let cantPedidos = 0;
+  let cantArticulos = 0;
 
   await Pedido.find(query).then(async (listaPedidos) => {
     listaPedidos.map((pedido = Pedido) => {
@@ -92,8 +47,13 @@ const getEstadisticaVentas = async (req, res = response) => {
           sumDeposito += m.importe;
         }
       });
+
+      pedido.detalles.map((pd = PedidoDetalle) => {
+        cantArticulos += pd.cantidad;
+      });
       montoVuelto += pedido.vuelto || 0;
     });
+    cantPedidos = listaPedidos.length;
   });
 
   res.json({
@@ -101,9 +61,11 @@ const getEstadisticaVentas = async (req, res = response) => {
     montoTotalDeposito: sumDeposito,
     montoPromedioEfectivo: contEfectivo == 0 ? 0 : sumEfectivo / contEfectivo,
     montoPromedioDeposito: contDeposito == 0 ? 0 : sumDeposito / contDeposito,
-    montoPromedioVuelto:
-      montoVuelto == 0 ? 0 : montoVuelto / resp[0].cantPedidos,
-    ...resp[0],
+    montoPromedioVuelto: montoVuelto == 0 ? 0 : montoVuelto / cantPedidos,
+    cantPedidos,
+    montoTotalVendido: sumEfectivo - montoVuelto + sumDeposito,
+    ventaPromedio: (sumEfectivo + sumDeposito) / cantPedidos || 0,
+    cantArticulos,
   });
 };
 
