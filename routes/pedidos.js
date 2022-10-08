@@ -205,6 +205,7 @@ router.get(
       EstadoDelivery.EN_CAMINO,
       EstadoDelivery.ENTREGADO,
       EstadoDelivery.PERDIDO,
+      "TODOS",
     ]),
     validarCampos,
   ],
