@@ -300,7 +300,7 @@ const getByEstadoDelivery = async (req, res = response) => {
   } = req.query;
 
   let query = {
-    estadoDelivery,
+    tipoPedido: "DELIVERY",
     estadoPedido: {
       $in: [
         EstadoPedido.PENDIENTE,
@@ -310,6 +310,9 @@ const getByEstadoDelivery = async (req, res = response) => {
     },
   };
 
+  if (estadoDelivery.toUpperCase() !== "TODOS") {
+    query.estadoDelivery = estadoDelivery;
+  }
   if (search) {
     query = { ...query, nro: search };
   }
