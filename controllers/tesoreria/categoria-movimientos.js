@@ -1,5 +1,5 @@
 const { response } = require("express");
-const { Caja } = require("../../models");
+const { CategoriaMovimiento } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
 
 const getAll = async (req, res = response) => {
@@ -26,13 +26,10 @@ const getAll = async (req, res = response) => {
     };
   }
 
-  console.log(query);
-
-  if (paginado === "true") {
+  if (paginado == "true") {
     const [total, data] = await Promise.all([
-      Caja.countDocuments(query),
-      Caja.find(query)
-        .populate("sucursal", "descripcion")
+      CategoriaMovimiento.countDocuments(query),
+      CategoriaMovimiento.find(query)
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
@@ -45,8 +42,7 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await Caja.find(query)
-      .populate("sucursal", "descripcion")
+    const data = await CategoriaMovimiento.find(query)
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
       .sort({ [orderBy]: direction });
@@ -56,8 +52,7 @@ const getAll = async (req, res = response) => {
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await Caja.findById(id)
-    .populate("sucursal", "descripcion")
+  const modelDB = await CategoriaMovimiento.findById(id)
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 
@@ -67,7 +62,7 @@ const getById = async (req, res = response) => {
 const add = async (req, res = response) => {
   const descripcion = req.body.descripcion.toUpperCase();
 
-  const modelDB = await Caja.findOne({ descripcion });
+  const modelDB = await CategoriaMovimiento.findOne({ descripcion });
 
   if (modelDB) {
     return res.status(400).json({
@@ -77,7 +72,7 @@ const add = async (req, res = response) => {
   req.body.descripcion = descripcion;
   req.body.usuarioAlta = req.usuario._id;
 
-  const newModel = new Caja(req.body);
+  const newModel = new CategoriaMovimiento(req.body);
 
   // Guardar DB
   await newModel.save();
@@ -90,7 +85,7 @@ const update = async (req, res = response) => {
   const { nro, ...data } = req.body;
 
   const descripcion = data.descripcion.toUpperCase();
-  const modelDB = await Caja.findOne({
+  const modelDB = await CategoriaMovimiento.findOne({
     descripcion,
   });
 
@@ -104,7 +99,7 @@ const update = async (req, res = response) => {
   data.usuarioModif = req.usuario._id;
   data.fechaModif = Date.now();
 
-  const newModel = await Caja.findByIdAndUpdate(id, data, {
+  const newModel = await CategoriaMovimiento.findByIdAndUpdate(id, data, {
     new: true,
   });
 
@@ -113,7 +108,7 @@ const update = async (req, res = response) => {
 
 const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
-  const modelBorrado = await Caja.findByIdAndUpdate(
+  const modelBorrado = await CategoriaMovimiento.findByIdAndUpdate(
     id,
     { estado: status },
     { new: true }

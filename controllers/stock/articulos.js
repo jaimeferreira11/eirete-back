@@ -1,6 +1,8 @@
 const { response } = require("express");
-const { Articulo, Sucursal } = require("../../models");
+const { ObjectId } = require("mongoose").Types;
+const { Articulo, Sucursal, LineaArticulo } = require("../../models");
 const { addArticuloToSucursales } = require("./stock-sucursal");
+const { getById: getLineaById } = require("./linea-articulos");
 
 const getAll = async (req, res = response) => {
   const {
@@ -10,6 +12,7 @@ const getAll = async (req, res = response) => {
     orderBy = "descripcion",
     direction = -1,
     estado = true,
+    linea,
     search = "",
   } = req.query;
 
@@ -18,6 +21,8 @@ const getAll = async (req, res = response) => {
   if (search)
     query.descripcion = { $regex: ".*" + search + ".*", $options: "i" };
 
+  if (linea) query.lineaArticulo = ObjectId(linea);
+
   if (paginado === "true") {
     const [total, data] = await Promise.all([
       Articulo.countDocuments(query),
@@ -25,16 +30,12 @@ const getAll = async (req, res = response) => {
         .populate({
           path: "lineaArticulo",
           select: "-__v",
-          populate: {
-            path: "familia",
-            select: "-__v",
-          },
         })
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({
@@ -46,14 +47,11 @@ const getAll = async (req, res = response) => {
       .populate({
         path: "lineaArticulo",
         select: "-__v",
-        populate: {
-          path: "familia",
-          select: "-__v",
-        },
       })
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
-      .sort({ orderBy: direction });
+      .sort({ [orderBy]: direction });
+
     res.json(data);
   }
 };
@@ -64,10 +62,6 @@ const getById = async (req, res = response) => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -156,10 +150,6 @@ const existeArticuloByCodigoBarra = async (codigoBarra = "") => {
     .populate({
       path: "lineaArticulo",
       select: "-__v",
-      populate: {
-        path: "familia",
-        select: "-__v",
-      },
     })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -211,6 +201,44 @@ const changeStatus = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const getArticulosByQuery = async (req, res = response) => {
+  const { search } = req.query;
+
+  if (!search) return res.json([]);
+
+  const query = {
+    descripcion: { $regex: ".*" + search + ".*", $options: "i" },
+  };
+
+  const data = await Articulo.find(query)
+    .select("-__v -usuarioAlta -fechaAlta")
+    .populate("lineaArticulo", "_id");
+
+  let lineasAgregadas = {};
+  const lineasConArticulos = await data.reduce(async (prev, art) => {
+    const currentMemoValue = await prev;
+
+    if (lineasAgregadas[art.lineaArticulo]) {
+      const index = lineasAgregadas[art.lineaArticulo] - 1;
+      currentMemoValue[index].articulos = [
+        ...currentMemoValue[index].articulos,
+        art,
+      ];
+      return prev;
+    } else {
+      const linea = await LineaArticulo.findById(art.lineaArticulo)
+        .select("_id descripcion")
+        .lean();
+      lineasAgregadas[art.lineaArticulo] = currentMemoValue.length + 1;
+
+      return [...currentMemoValue, { ...linea, articulos: [art] }];
+    }
+  }, []);
+
+  lineasConArticulos.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+  res.json(lineasConArticulos);
+};
+
 module.exports = {
   add,
   getAll,
@@ -221,4 +249,5 @@ module.exports = {
   updateArticulo,
   existeArticuloByCodigoBarra,
   changeStatus,
+  getArticulosByQuery,
 };

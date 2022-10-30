@@ -13,6 +13,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.24.0",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
@@ -25,6 +26,8 @@
     "mongoose-audit-trail": "^2.0.7",
     "mongoose-transient": "^1.0.4",
     "request": "^2.88.2",
+    "swagger-jsdoc": "^6.2.1",
+    "swagger-ui-express": "^4.5.0",
     "uuid": "^8.3.2"
   }
 }

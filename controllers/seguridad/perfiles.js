@@ -77,10 +77,22 @@ const inactivate = async (req, res = response) => {
   res.json(modelBorrado);
 };
 
+const changeStatus = async (req, res = response) => {
+  const { id, status } = req.params;
+  const modelBorrado = await Perfil.findByIdAndUpdate(
+    id,
+    { estado: status },
+    { new: true }
+  );
+
+  res.json(modelBorrado);
+};
+
 module.exports = {
   add,
   getAll,
   getById,
   update,
   inactivate,
+  changeStatus,
 };

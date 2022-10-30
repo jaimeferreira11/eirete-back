@@ -29,7 +29,7 @@ const getAll = async (req, res = response) => {
         .populate("usuarioModif", "username")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({
@@ -40,7 +40,7 @@ const getAll = async (req, res = response) => {
     const data = await Sucursal.find(query)
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
-      .sort({ orderBy: direction });
+      .sort({ [orderBy]: direction });
     res.json(data);
   }
 };
@@ -110,7 +110,7 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { _id, estado, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
+  const { _id, usuarioAlta, fechaAlta, nroActual, articulos, ...data } =
     req.body;
 
   try {

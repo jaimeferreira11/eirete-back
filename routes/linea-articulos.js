@@ -11,17 +11,70 @@ const {
   inactivate,
   changeStatus,
 } = require("../controllers/stock/linea-articulos");
-const {
-  existeLineaArticuloPorId,
-  existeFamiliaPorId,
-} = require("../helpers/db-validators");
+const { existeLineaArticuloPorId } = require("../helpers/db-validators");
 
 const router = Router();
 
-//  Obtener todas las categorias - publico
+/**
+ * {{url}}/api/linea-articulos
+ */
+
+/**
+ * @swagger
+ * /linea-articulos/{lineaArticuloId}:
+ *  get:
+ *    tags: ["Stock"]
+ *    summary: Obtiene linea de articulo por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: lineaArticuloId
+ *        in: "path"
+ *        description: "Id de la linea de articulo"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id - publico
+/**
+ * @swagger
+ * /linea-articulos/{lineaArticuloId}:
+ *  get:
+ *    tags: ["Stock"]
+ *    summary: Obtiene linea de articulo por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: lineaArticuloId
+ *        in: "path"
+ *        description: "Id de la linea de articulo"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/:id",
   [
@@ -33,33 +86,121 @@ router.get(
   getById
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
+/**
+ * @swagger
+ * /linea-articulos:
+ *  post:
+ *    tags: ["Stock"]
+ *    summary: Crear un nuevo linea de articulo
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.post(
   "/",
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
+/**
+ * @swagger
+ * /linea-articulos/{lineaArticuloId}:
+ *  put:
+ *    tags: ["Stock"]
+ *    summary: Actualizar un linea de articulo
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: lineaArticuloId
+ *        in: "path"
+ *        description: "Id de la linea de articulo"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/:id",
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("id").custom(existeLineaArticuloPorId),
-    check("familia._id", "No es un id de Mongo").isMongoId(),
-    check("familia._id").custom(existeFamiliaPorId),
+
     validarCampos,
   ],
   update
 );
 
+/**
+ * @swagger
+ * /linea-articulos/change-status/{lineaArticuloId}/{estado}:
+ *  put:
+ *    tags: ["Stock"]
+ *    summary: Cambiar el estado de un linea de articulo
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: lineaArticuloId
+ *        in: "path"
+ *        description: "Id de la linea de articulo"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estado
+ *        in: "path"
+ *        description: "Nuevo estado de la linea de articulo"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/LineaArticulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/change-status/:id/:status",
   [

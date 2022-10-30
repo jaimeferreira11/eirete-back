@@ -11,7 +11,7 @@ const dbConnection = async () => {
       //    useFindAndModify: false,
     });
 
-    console.log("Base de datos online");
+    // console.log("Base de datos online");
 
     const config = {
       mongoUrl: process.env.MONGODB_CNN,
@@ -62,6 +62,16 @@ const dbConnection = async () => {
     throw new Error("Error a la hora de iniciar la base de datos");
   }
 };
+
+const conn = mongoose.connection;
+
+conn.on("error", () =>
+  console.error.bind(console, "Database connection error")
+);
+
+conn.once("open", () => console.info("Connection to Database is successful"));
+
+module.exports = conn;
 
 async function addRoles(db) {
   const collection = db.collection("roles");

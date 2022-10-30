@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { Cliente, Persona } = require("../../models");
-const { updatePersona } = require("./personas");
+const { updatePersona, obtenerPersonaByNroDoc } = require("./personas");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
@@ -30,7 +30,7 @@ const getAll = async (req, res = response) => {
       .populate("persona", "-__v")
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
-      .sort({ orderBy: direction })
+      .sort({ [orderBy]: direction })
       .then(async (customers) => {
         let clientes = [];
 
@@ -63,7 +63,7 @@ const getAll = async (req, res = response) => {
         .populate("usuarioModif", "username")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({
@@ -107,7 +107,15 @@ const getByPersonaId = async (req, res = response) => {
 
 const getByPersonaDoc = async (req, res = response) => {
   const { doc } = req.params;
-  const modelDB = await Cliente.findOne({ "persona.nroDoc": doc })
+
+  const persona = await obtenerPersonaByNroDoc(doc);
+  if (!persona) {
+    return res.status(404).json({
+      msg: `El Cliente con doc ${doc} no existe`,
+    });
+  }
+  console.log(persona);
+  const modelDB = await Cliente.findOne({ persona: persona._id })
     .populate("persona", "-__v")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
@@ -132,10 +140,22 @@ const add = async (req, res = response) => {
         });
       }
     }
+
     // Generar la data a guardar
     let personaData = req.body.persona;
     personaData.usuarioAlta = req.usuario._id;
     personaData.nombreApellido = req.body.persona.nombreApellido.toUpperCase();
+
+    console.log(req.body.persona.nroDoc.toUpperCase());
+    // buscar si ya existe un cliente con esa persona
+    const personaClienteDB = await Persona.findOne({
+      nroDoc: req.body.persona.nroDoc.toUpperCase(),
+    });
+    if (personaClienteDB) {
+      console.log("Encontro la persona", personaClienteDB._id);
+      // Verificar si la persona existe
+      personaData._id = personaClienteDB._id;
+    }
 
     let idCliente;
     if (!personaData._id) {
@@ -180,6 +200,18 @@ const add = async (req, res = response) => {
         persona: persona._id,
         usuarioAlta: req.usuario._id,
       };
+
+      if (persona.direccion) {
+        console.log("Armando la direccion");
+        const direccion = {
+          direccion: persona.direccion,
+          ciudad: persona.ciudad,
+          predeterminado: true,
+          contacto: persona.celular,
+          obs: persona.obs,
+        };
+        clienteData.direcciones = [direccion];
+      }
       const newModel = new Cliente(clienteData);
 
       // Guardar DB
@@ -205,11 +237,48 @@ const update = async (req, res = response) => {
 
     await updatePersona(data.persona, req.usuario._id);
 
+    if (data.persona.direccion) {
+      console.log("Armando la direccion");
+      const direccion = {
+        direccion: data.persona.direccion,
+        ciudad: data.persona.ciudad,
+        predeterminado: true,
+        contacto: data.persona.celular,
+        obs: data.persona.obs,
+      };
+      data.direcciones = [direccion];
+    }
+
     const newModel = await Cliente.findByIdAndUpdate(id, data, { new: true });
 
     res.json(newModel);
   } catch (error) {
     res.status(400).json({ msg: `Error al actualizar el cliente: ${error}` });
+  }
+};
+
+const updateDirecciones = async (req, res = response) => {
+  try {
+    const { id } = req.params;
+    const { direcciones = [] } = req.body;
+
+    const data = await Cliente.findById(id);
+    data.usuarioModif = req.usuario._id;
+    data.fechaModif = Date.now();
+    data.direcciones = direcciones;
+
+    if (data.direcciones.filter((d) => d.predeterminado).length > 1) {
+      data.direcciones.forEach((d) => (d.predeterminado = false));
+      data.direcciones[0].predeterminado = true;
+    }
+
+    const newModel = await Cliente.findByIdAndUpdate(id, data, { new: true });
+
+    res.json(newModel);
+  } catch (error) {
+    res.status(400).json({
+      msg: `Error al actualizar las direcciones del cliente: ${error}`,
+    });
   }
 };
 
@@ -232,4 +301,5 @@ module.exports = {
   update,
   changeStatus,
   getByPersonaDoc,
+  updateDirecciones,
 };

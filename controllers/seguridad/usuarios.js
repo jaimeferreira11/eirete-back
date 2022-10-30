@@ -53,7 +53,7 @@ const usuariosGet = async (req = request, res = response) => {
         .populate("sucursal", "descripcion")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
     res.json({
       total,
@@ -63,7 +63,7 @@ const usuariosGet = async (req = request, res = response) => {
     const data = await Usuario.find(query)
       .populate("perfiles", "descripcion")
       .populate("sucursal", "descripcion")
-      .sort({ orderBy: direction });
+      .sort({ [orderBy]: direction });
     res.json(data);
   }
 };

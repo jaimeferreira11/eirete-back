@@ -1,38 +1,30 @@
 const { response } = require("express");
-const { Caja } = require("../../models");
+const { Movimiento, CategoriaMovimiento } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
+const { obtenerOrCrearTurno } = require("./turnos");
 
 const getAll = async (req, res = response) => {
   const {
     limite = 10,
     desde = 0,
     paginado = true,
-    orderBy = "descripcion",
+    orderBy = "fechaAlta",
     direction = -1,
-    estado = true,
-    search = "",
+    esIngreso,
+    esGasto,
   } = req.query;
 
-  let query = { estado };
-
-  if (search) {
-    const regex = {
-      $regex: ".*" + skipAcentAndSpace(search) + ".*",
-      $options: "i",
-    };
-    query = {
-      $or: [{ descripcion: regex }],
-      $and: [{ estado: true }],
-    };
-  }
+  const query = {
+    $and: [{ esIngreso: esIngreso }, { esGasto: esGasto }],
+  };
 
   console.log(query);
 
-  if (paginado === "true") {
+  if (paginado == "true") {
     const [total, data] = await Promise.all([
-      Caja.countDocuments(query),
-      Caja.find(query)
-        .populate("sucursal", "descripcion")
+      Movimiento.countDocuments(query),
+      Movimiento.find(query)
+        .populate("categoria", "descripcion")
         .populate("usuarioAlta", "username")
         .populate("usuarioModif", "username")
         .skip(Number(desde))
@@ -45,8 +37,8 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await Caja.find(query)
-      .populate("sucursal", "descripcion")
+    const data = await Movimiento.find(query)
+      .populate("categoria", "descripcion")
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username")
       .sort({ [orderBy]: direction });
@@ -56,8 +48,8 @@ const getAll = async (req, res = response) => {
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await Caja.findById(id)
-    .populate("sucursal", "descripcion")
+  const modelDB = await Movimiento.findById(id)
+    .populate("categoria", " descripcion ")
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 
@@ -67,17 +59,30 @@ const getById = async (req, res = response) => {
 const add = async (req, res = response) => {
   const descripcion = req.body.descripcion.toUpperCase();
 
-  const modelDB = await Caja.findOne({ descripcion });
+  const modelDB = await Movimiento.findOne({ descripcion });
 
   if (modelDB) {
     return res.status(400).json({
       msg: `La caja ${modelDB.descripcion}, ya existe`,
     });
   }
+  const categoria = await CategoriaMovimiento.findById(req.body.categoria._id);
   req.body.descripcion = descripcion;
   req.body.usuarioAlta = req.usuario._id;
+  req.body.esGasto = categoria.esGasto;
+  req.body.esIngreso = categoria.esIngreso;
 
-  const newModel = new Caja(req.body);
+  const turnoActivo = await obtenerOrCrearTurno(req.usuario);
+
+  console.log("categoria", categoria);
+
+  const newModel = new Movimiento({
+    turno: turnoActivo._id,
+    ...req.body,
+  });
+  newModel.esGasto = categoria.esGasto;
+  newModel.esIngreso = categoria.esIngreso;
+  console.log("newModel", newModel);
 
   // Guardar DB
   await newModel.save();
@@ -89,31 +94,29 @@ const update = async (req, res = response) => {
   const { id } = req.params;
   const { nro, ...data } = req.body;
 
+  console.log(data);
+
   const descripcion = data.descripcion.toUpperCase();
-  const modelDB = await Caja.findOne({
-    descripcion,
-  });
 
-  if (modelDB && modelDB._id != id) {
-    return res.status(400).json({
-      msg: `La caja ${modelDB.descripcion}, ya existe`,
-    });
-  }
-
+  const categoria = await CategoriaMovimiento.findById(req.body.categoria._id);
   data.descripcion = descripcion;
   data.usuarioModif = req.usuario._id;
   data.fechaModif = Date.now();
 
-  const newModel = await Caja.findByIdAndUpdate(id, data, {
-    new: true,
-  });
+  const newModel = await Movimiento.findByIdAndUpdate(
+    id,
+    { esGasto: categoria.esGasto, esIngreso: categoria.esIngreso, ...data },
+    {
+      new: true,
+    }
+  );
 
   res.json(newModel);
 };
 
 const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
-  const modelBorrado = await Caja.findByIdAndUpdate(
+  const modelBorrado = await Movimiento.findByIdAndUpdate(
     id,
     { estado: status },
     { new: true }

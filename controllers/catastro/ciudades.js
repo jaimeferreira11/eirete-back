@@ -1,4 +1,5 @@
 const { response } = require("express");
+const { skipAcent } = require("../../helpers");
 const { Ciudad } = require("../../models");
 
 const getAll = async (req, res = response) => {
@@ -24,6 +25,8 @@ const getAll = async (req, res = response) => {
         .limit(Number(limite)),
     ]);
 
+    data.map((c) => (c.descripcion = skipAcent(c.descripcion)));
+
     res.json({
       total,
       data,
@@ -32,6 +35,8 @@ const getAll = async (req, res = response) => {
     const data = await Ciudad.find(query)
       .populate("usuarioAlta", "username")
       .populate("usuarioModif", "username");
+
+    data.map((c) => (c.descripcion = skipAcent(c.descripcion)));
     res.json(data);
   }
 };
@@ -42,6 +47,7 @@ const getById = async (req, res = response) => {
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 
+  modelDB.descripcion = skipAcent(modelDB.descripcion);
   res.json(modelDB);
 };
 

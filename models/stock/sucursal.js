@@ -1,15 +1,16 @@
 const { Schema, model } = require("mongoose");
-const diffHistory = require('mongoose-audit-trail');
-
+const diffHistory = require("mongoose-audit-trail");
 
 const SucursalSchema = new Schema({
   descripcion: {
     type: String,
     unique: true,
+    uppercase: true,
     required: [true, "La descripcion es obligatoria"],
   },
   direccion: {
     type: String,
+    uppercase: true,
     required: [true, "La dirección es obligatoria"],
   },
   ciudad: {
@@ -67,6 +68,5 @@ const SucursalSchema = new Schema({
 });
 
 SucursalSchema.plugin(diffHistory.plugin);
-
 
 module.exports = model("Sucursal", SucursalSchema);

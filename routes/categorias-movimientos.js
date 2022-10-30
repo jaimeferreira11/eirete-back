@@ -9,21 +9,20 @@ const {
   getById,
   update,
   changeStatus,
-} = require("../controllers/catastro/ciudades");
-const { existeCiudadPorId } = require("../helpers/db-validators");
+} = require("../controllers/tesoreria/categoria-movimientos");
+const {
+  existeSucursalPorId,
+  existeCategoriaMovimientoPorId,
+} = require("../helpers/db-validators");
 
 const router = Router();
 
 /**
- * {{url}}/api/ciudades
- */
-
-/**
  * @swagger
- * /ciudades:
+ * /categorias-movimientos:
  *  get:
- *    tags: ["Catastro"]
- *    summary: Obtiene todas las ciudades
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene todos los categorias
  *    description: ""
  *    produces: ["application/json"]
  *    responses:
@@ -32,7 +31,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/Ciudad"
+ *            $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -44,16 +43,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /ciudades/{ciudadId}:
+ * /categorias-movimientos/{categoraId}:
  *  get:
- *    tags: ["Catastro"]
- *    summary: Obtiene ciudad por id
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene categoria por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: categoraId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id de la categoria"
  *        required: true
  *        type: integer
  *        format: int64
@@ -61,7 +60,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -74,7 +73,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
+    check("id").custom(existeCategoriaMovimientoPorId),
     validarCampos,
   ],
   getById
@@ -82,10 +81,10 @@ router.get(
 
 /**
  * @swagger
- * /ciudades:
+ * /categorias-movimientos:
  *  post:
- *    tags: ["Catastro"]
- *    summary: Crear una nueva ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Crear una nuevo categoria
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
@@ -94,12 +93,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -112,6 +111,17 @@ router.post(
   [
     validarJWT,
     check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
+    check("esEgreso", "El esGreso debe ser boolean").optional().isBoolean(),
+    check("esIngreso", "El esIngreso debe ser boolean").optional().isBoolean(),
+    check("visibleCaja", "El visibleCaja debe ser boolean")
+      .optional()
+      .isBoolean(),
+    check("afectaArqueo", "El afectaArqueo debe ser boolean")
+      .optional()
+      .isBoolean(),
+    check("afectaEstadistica", "El afectaEstadistica debe ser boolean")
+      .optional()
+      .isBoolean(),
     validarCampos,
   ],
   add
@@ -119,16 +129,16 @@ router.post(
 
 /**
  * @swagger
- * /ciudades/{ciudadId}:
+ * /categorias-movimientos/{categoriaId}:
  *  put:
- *    tags: ["Catastro"]
- *    summary: Actualizar una ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Actualizar un categoria
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: categoriaId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id del categoria"
  *        required: true
  *        type: integer
  *        format: int64
@@ -137,12 +147,12 @@ router.post(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -154,9 +164,9 @@ router.put(
   "/:id",
   [
     validarJWT,
-    check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
     check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id", "No es un id de Mongo").isMongoId(),
+    check("id").custom(existeCategoriaMovimientoPorId),
     validarCampos,
   ],
   update
@@ -164,29 +174,29 @@ router.put(
 
 /**
  * @swagger
- * /ciudades/change-status/{ciudadId}/{estado}:
+ * /categorias-movimientos/change-status/{categoraId}/{estado}:
  *  put:
- *    tags: ["Catastro"]
- *    summary: Cambiar el estado de una ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Cambiar el estado de una categoria movimiento
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: categoraId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id de la categoria movimiento"
  *        required: true
  *        type: integer
  *        format: int64
  *      - name: estado
  *        in: "path"
- *        description: "Nuevo estado de la ciudad"
+ *        description: "Nuevo estado de la categoria movimiento"
  *        required: true
  *        type: boolean
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/CategoriaMovimiento"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -198,8 +208,9 @@ router.put(
   "/change-status/:id/:status",
   [
     validarJWT,
+    esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
+    check("id").custom(existeCategoriaMovimientoPorId),
     check("status", "El estado es obligatorio").not().isEmpty(),
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,

@@ -41,7 +41,7 @@ const getByDocAndTipoDoc = async (req, res = response) => {
   const { nroDoc, tipoDoc = "CI" } = req.query;
   console.log(`Buscando la persona con doc  ${nroDoc}`);
 
-  const modelDB = await existePersonaByNroDocAndTipoDoc(nroDoc, tipoDoc);
+  const modelDB = await obtenerPersonaByNroDocAndTipoDoc(nroDoc, tipoDoc);
   if (!modelDB) {
     console.log(`No existe la persona: ${tipoDoc}-${nroDoc}`);
     return res.status(404).json({
@@ -64,7 +64,7 @@ const add = async (req, res = response) => {
       }
     }
 
-    if (await existePersonaByNroDocAndTipoDoc(nroDoc, tipoDoc)) {
+    if (await obtenerPersonaByNroDocAndTipoDoc(nroDoc, tipoDoc)) {
       return res.status(400).json({
         msg: `Ya existe la persona: ${tipoDoc}-${nroDoc}`,
       });
@@ -94,30 +94,44 @@ const update = async (req, res = response) => {
   res.json(newModel);
 };
 
-const existePersonaByNroDocAndTipoDoc = async (nroDoc = "", tipoDoc = "CI") => {
+const obtenerPersonaByNroDocAndTipoDoc = async (
+  nroDoc = "",
+  tipoDoc = "CI"
+) => {
   return await Persona.findOne({ nroDoc: nroDoc, tipoDoc: tipoDoc })
     .populate("usuarioAlta", "username")
     .populate("usuarioModif", "username");
 };
 
+const obtenerPersonaByNroDoc = async (doc = "") => {
+  const query = { $or: [{ nroDoc: doc }, { ruc: doc }] };
+  return await Persona.findOne(query)
+    .populate("usuarioAlta", "username")
+    .populate("usuarioModif", "username");
+};
+
 const addPersona = async (newPersona = Persona, usuario_id = null) => {
+  const tipoDoc = newPersona.nroDoc.indexOf("-") > -1 ? "RUC" : "CI";
+  newPersona.tipoDoc = tipoDoc;
   try {
-    if (
-      existePersonaByNroDocAndTipoDoc(newPersona.nroDoc, newPersona.tipoDoc)
-    ) {
+    const existePersona = await obtenerPersonaByNroDocAndTipoDoc(
+      newPersona.nroDoc,
+      tipoDoc
+    );
+    if (existePersona) {
       throw new Error(
-        `La persona con doc: ${newPersona.tipoDoc}-${newPersona.nroDoc}, ya está registrado`
+        `La persona con doc: ${tipoDoc}-${newPersona.nroDoc}, ya está registrado`
       );
     }
 
     // preguntar si tiene ruc
-    if (newPersona.nroDoc.indexOf("-") > -1 && !newPersona.ruc) {
+    if (newPersona.tipoDoc == "RUC" && !newPersona.ruc) {
       newPersona.ruc = newPersona.nroDoc;
-      newPersona.tipoDoc = "RUC";
     }
     newPersona.usuarioAlta = usuario_id;
     newPersona.nombreApellido = newPersona.nombreApellido.toUpperCase();
 
+    console.log(`Persona guardada: ${newPersona.tipoDoc}-${newPersona.nroDoc}`);
     return await newPersona.save();
   } catch (error) {
     console.log("Error al agregar la persona", error);
@@ -128,10 +142,11 @@ const addPersona = async (newPersona = Persona, usuario_id = null) => {
 const updatePersona = async (personaUpdated = Persona, usuario_id = null) => {
   try {
     const { usuarioAlta, fechaAlta, nroDoc, tipoDoc, ...data } = personaUpdated;
+
     console.log(`Actualizando persona: ${nroDoc}`);
     data.usuarioModif = usuario_id;
     data.fechaModif = Date.now();
-    data.nombreApellido = data.nombreApellido.toUpperCase();
+    data.nombreApellido = personaUpdated.nombreApellido.toUpperCase();
     return await Persona.findByIdAndUpdate(data._id, data, { new: true });
   } catch (error) {
     console.log("Error al actualizar la persona", error);
@@ -147,5 +162,6 @@ module.exports = {
   update,
   updatePersona,
   addPersona,
-  existePersonaByNroDocAndTipoDoc,
+  obtenerPersonaByNroDocAndTipoDoc,
+  obtenerPersonaByNroDoc,
 };

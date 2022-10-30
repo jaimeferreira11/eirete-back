@@ -1,11 +1,11 @@
 const { Schema, model } = require("mongoose");
-const diffHistory = require('mongoose-audit-trail');
-
+const diffHistory = require("mongoose-audit-trail");
 
 const LineaArticuloSchema = Schema({
   descripcion: {
     type: String,
     unique: true,
+    uppercase: true,
     required: [true, "La descripcion es obligatoria"],
   },
   estado: {
@@ -13,14 +13,8 @@ const LineaArticuloSchema = Schema({
     required: [true, "El estado es obligatorio"],
     default: true,
   },
-  familia: {
-    type: Schema.Types.ObjectId,
-    ref: "FamiliaArticulo",
-    required: [true, "La familia es obligatorio"],
-  },
 });
 
 LineaArticuloSchema.plugin(diffHistory.plugin);
-
 
 module.exports = model("LineaArticulo", LineaArticuloSchema);

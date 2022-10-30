@@ -5,10 +5,10 @@ const { validarJWT, validarCampos, esAdminRole } = require("../middlewares");
 
 const {
   getBySucursal,
-  getFamiliasBySucursal,
   getLineasBySucursal,
   getArticulosBySucursal,
   updateArticuloSucursal,
+  getArticulosByQuery,
 } = require("../controllers/stock/stock-sucursal");
 const {
   existeSucursalPorId,
@@ -18,10 +18,9 @@ const {
 const router = Router();
 
 /**
- * {{url}}/api/articulos-sucursal
+ * {{url}}/api/stock
  */
 
-//  Obtener todas las categorias
 router.get(
   "/sucursal/:id",
   [
@@ -34,18 +33,7 @@ router.get(
 );
 
 router.get(
-  "/sucursal/:id/familias",
-  [
-    validarJWT,
-    check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeSucursalPorId),
-    validarCampos,
-  ],
-  getFamiliasBySucursal
-);
-
-router.get(
-  "/sucursal/:id/familia/:idFamilia/lineas",
+  "/sucursal/:id/lineas",
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
@@ -78,6 +66,43 @@ router.put(
     validarCampos,
   ],
   updateArticuloSucursal
+);
+
+/**
+ * @swagger
+ * /sucursal/:id/search/articulos-con-lineas:
+ *  get:
+ *    tags: ["Stock"]
+ *    summary: Obtiene articulos por el termino introducido agrupados en linea de articulo
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: search
+ *        in: "query"
+ *        description: "Termino a  buscar"
+ *        required: true
+ *        type: string
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Articulo"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/sucursal/:id/search/articulos-con-lineas",
+  [
+    validarJWT,
+    check("id", "No es un id de Mongo válido").isMongoId(),
+    check("id").custom(existeSucursalPorId),
+    validarCampos,
+  ],
+  getArticulosByQuery
 );
 
 module.exports = router;

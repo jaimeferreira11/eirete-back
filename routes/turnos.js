@@ -7,23 +7,24 @@ const {
   add,
   getAll,
   getById,
+  getTurnoActivoByUser,
   update,
   changeStatus,
-} = require("../controllers/catastro/ciudades");
-const { existeCiudadPorId } = require("../helpers/db-validators");
+} = require("../controllers/tesoreria/turnos");
+const {
+  existeSucursalPorId,
+  existeTurnoPorId,
+  existeUsuarioPorId,
+} = require("../helpers/db-validators");
 
 const router = Router();
 
 /**
- * {{url}}/api/ciudades
- */
-
-/**
  * @swagger
- * /ciudades:
+ * /turnos:
  *  get:
- *    tags: ["Catastro"]
- *    summary: Obtiene todas las ciudades
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene todos los turnos
  *    description: ""
  *    produces: ["application/json"]
  *    responses:
@@ -32,7 +33,7 @@ const router = Router();
  *        schema:
  *          type: array
  *          items:
- *            $ref: "#/definitions/Ciudad"
+ *            $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -44,16 +45,16 @@ router.get("/", [validarJWT, validarCampos], getAll);
 
 /**
  * @swagger
- * /ciudades/{ciudadId}:
+ * /turnos/{turnoId}:
  *  get:
- *    tags: ["Catastro"]
- *    summary: Obtiene ciudad por id
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene turno por id
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id de la turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -61,7 +62,7 @@ router.get("/", [validarJWT, validarCampos], getAll);
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '404':
@@ -74,7 +75,7 @@ router.get(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
+    check("id").custom(existeTurnoPorId),
     validarCampos,
   ],
   getById
@@ -82,10 +83,43 @@ router.get(
 
 /**
  * @swagger
- * /ciudades:
+ * /turnos/usuario/activo:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene el turno activo del usuario logueado
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: turnoId
+ *        in: "path"
+ *        description: "Id de la turno"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Turno"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
+router.get(
+  "/usuario/activo",
+  [validarJWT, validarCampos],
+  getTurnoActivoByUser
+);
+
+/**
+ * @swagger
+ * /turnos:
  *  post:
- *    tags: ["Catastro"]
- *    summary: Crear una nueva ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Crear una nuevo turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
@@ -94,12 +128,12 @@ router.get(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -111,7 +145,9 @@ router.post(
   "/",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatoria").not().isEmpty(),
+    // va tomar del login
+    // check("sucursal._id", "No es un id de Mongo").isMongoId(),
+    // check("sucursal._id").custom(existeSucursalPorId),
     validarCampos,
   ],
   add
@@ -119,16 +155,16 @@ router.post(
 
 /**
  * @swagger
- * /ciudades/{ciudadId}:
+ * /turnos/{turnoId}:
  *  put:
- *    tags: ["Catastro"]
- *    summary: Actualizar una ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Actualizar un turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id del turno"
  *        required: true
  *        type: integer
  *        format: int64
@@ -137,12 +173,12 @@ router.post(
  *        description: "Objecto a guardar"
  *        required: true
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -155,8 +191,10 @@ router.put(
   [
     validarJWT,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
-    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id").custom(existeTurnoPorId),
+    check("sucursal._id", "No es un id de Mongo").isMongoId(),
+    check("sucursal._id").custom(existeSucursalPorId),
+    check("fechaCierre").notEmpty().isISO8601().toDate(),
     validarCampos,
   ],
   update
@@ -164,29 +202,29 @@ router.put(
 
 /**
  * @swagger
- * /ciudades/change-status/{ciudadId}/{estado}:
+ * /turnos/change-status/{turnoId}/{estado}:
  *  put:
- *    tags: ["Catastro"]
- *    summary: Cambiar el estado de una ciudad
+ *    tags: ["Tesoreria"]
+ *    summary: Cambiar el estado de una turno
  *    description: ""
  *    produces: ["application/json"]
  *    parameters:
- *      - name: ciudadId
+ *      - name: turnoId
  *        in: "path"
- *        description: "Id de la ciudad"
+ *        description: "Id de laturno"
  *        required: true
  *        type: integer
  *        format: int64
  *      - name: estado
  *        in: "path"
- *        description: "Nuevo estado de la ciudad"
+ *        description: "Nuevo estado de la turno"
  *        required: true
  *        type: boolean
  *    responses:
  *      '200':
  *        description: Operación exitosa
  *        schema:
- *          $ref: "#/definitions/Ciudad"
+ *          $ref: "#/definitions/Turno"
  *      '401':
  *        description: Acceso Prohibido
  *      '400':
@@ -198,8 +236,9 @@ router.put(
   "/change-status/:id/:status",
   [
     validarJWT,
+    esAdminRole,
     check("id", "No es un id de Mongo válido").isMongoId(),
-    check("id").custom(existeCiudadPorId),
+    check("id").custom(existeTurnoPorId),
     check("status", "El estado es obligatorio").not().isEmpty(),
     check("status", "El estado debe ser boolean").isBoolean(),
     validarCampos,

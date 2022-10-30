@@ -17,10 +17,57 @@ const {
 
 const router = Router();
 
-//  Obtener todas las categorias - publico
+/**
+ * @swagger
+ * /cajas:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene todos los cajas
+ *    description: ""
+ *    produces: ["application/json"]
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          type: array
+ *          items:
+ *            $ref: "#/definitions/Caja"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get("/", [validarJWT, validarCampos], getAll);
 
-// Obtener una categoria por id - publico
+/**
+ * @swagger
+ * /cajas/{cajaId}:
+ *  get:
+ *    tags: ["Tesoreria"]
+ *    summary: Obtiene caja por id
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: cajaId
+ *        in: "path"
+ *        description: "Id de la caja"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '404':
+ *        description: Sin resultados
+ *      '500':
+ *        description: Error inesperado
+ */
 router.get(
   "/:id",
   [
@@ -32,7 +79,33 @@ router.get(
   getById
 );
 
-// Crear categoria - privado - cualquier persona con un token válido
+/**
+ * @swagger
+ * /cajas:
+ *  post:
+ *    tags: ["Tesoreria"]
+ *    summary: Crear una nuevo caja
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.post(
   "/",
   [
@@ -45,13 +118,46 @@ router.post(
   add
 );
 
-// Actualizar - privado - cualquiera con token válido
+/**
+ * @swagger
+ * /cajas/{cajaId}:
+ *  put:
+ *    tags: ["Tesoreria"]
+ *    summary: Actualizar un caja
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: cajaId
+ *        in: "path"
+ *        description: "Id del caja"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: body
+ *        in: body
+ *        description: "Objecto a guardar"
+ *        required: true
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/:id",
   [
     validarJWT,
-    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+    check("id", "No es un id de Mongo válido").isMongoId(),
     check("id").custom(existeCajaPorId),
+    check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
     check("sucursal._id", "No es un id de Mongo").isMongoId(),
     check("sucursal._id").custom(existeSucursalPorId),
     validarCampos,
@@ -59,6 +165,38 @@ router.put(
   update
 );
 
+/**
+ * @swagger
+ * /cajas/change-status/{cajaId}/{estado}:
+ *  put:
+ *    tags: ["Tesoreria"]
+ *    summary: Cambiar el estado de una caja
+ *    description: ""
+ *    produces: ["application/json"]
+ *    parameters:
+ *      - name: cajaId
+ *        in: "path"
+ *        description: "Id de lacaja"
+ *        required: true
+ *        type: integer
+ *        format: int64
+ *      - name: estado
+ *        in: "path"
+ *        description: "Nuevo estado de la caja"
+ *        required: true
+ *        type: boolean
+ *    responses:
+ *      '200':
+ *        description: Operación exitosa
+ *        schema:
+ *          $ref: "#/definitions/Caja"
+ *      '401':
+ *        description: Acceso Prohibido
+ *      '400':
+ *        description: Petición incorrecta
+ *      '500':
+ *        description: Error inesperado
+ */
 router.put(
   "/change-status/:id/:status",
   [

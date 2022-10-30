@@ -21,10 +21,9 @@ const getAll = async (req, res = response) => {
     const [total, data] = await Promise.all([
       LineaArticulo.countDocuments(query),
       LineaArticulo.find(query)
-        .populate("familia", "descripcion")
         .skip(Number(desde))
         .limit(Number(limite))
-        .sort({ orderBy: direction }),
+        .sort({ [orderBy]: direction }),
     ]);
 
     res.json({
@@ -32,19 +31,14 @@ const getAll = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await LineaArticulo.find(query)
-      .populate("familia", "descripcion")
-      .sort({ orderBy: direction });
+    const data = await LineaArticulo.find(query).sort({ [orderBy]: direction });
     res.json(data);
   }
 };
 
 const getById = async (req, res = response) => {
   const { id } = req.params;
-  const modelDB = await LineaArticulo.findById(id).populate(
-    "familia",
-    "descripcion"
-  );
+  const modelDB = await LineaArticulo.findById(id);
 
   res.json(modelDB);
 };
@@ -71,7 +65,7 @@ const add = async (req, res = response) => {
 
 const update = async (req, res = response) => {
   const { id } = req.params;
-  const { estado, ...data } = req.body;
+  const { ...data } = req.body;
 
   data.descripcion = data.descripcion.toUpperCase();
 

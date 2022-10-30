@@ -7,10 +7,14 @@ const {
   Proveedor,
   Articulo,
   LineaArticulo,
-  FamiliaArticulo,
   Sucursal,
   Caja,
   Ciudad,
+  Pedido,
+  CategoriaMovimiento,
+  Movimiento,
+  Arqueo,
+  Turno,
 } = require("../models");
 
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -107,14 +111,14 @@ const existeClientePorId = async (id) => {
 
 const existeClientePorDoc = async (nroDoc = "") => {
   const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
-  if (persona) {
-    // Verificar si la persona existe como cliente
-    const existe = await Cliente.findOne({
-      persona: new ObjectId(persona._id),
-    });
-    if (existe) {
-      throw new Error(`Ya existe el cliente con doc: ${nroDoc}`);
-    }
+  if (!persona)
+    throw new Error(`No existe el persona ni cliente con doc: ${nroDoc}`);
+  // Verificar si la persona existe como cliente
+  const existe = await Cliente.findOne({
+    persona: new ObjectId(persona._id),
+  });
+  if (!existe) {
+    throw new Error(`No existe el cliente con doc: ${nroDoc}`);
   }
 };
 
@@ -200,17 +204,6 @@ const existeLineaArticuloPorId = async (id) => {
 };
 
 /**
- * Familias
- */
-const existeFamiliaPorId = async (id) => {
-  // Verificar si el correo existe
-  const existe = await FamiliaArticulo.findById(id);
-  if (!existe) {
-    throw new Error(`El id no existe ${id}`);
-  }
-};
-
-/**
  * Cajas
  */
 const existeCajaPorId = async (id) => {
@@ -226,6 +219,61 @@ const existeCajaPorId = async (id) => {
 const existeCiudadPorId = async (id) => {
   // Verificar si el correo existe
   const existe = await Ciudad.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Pedidos
+ */
+const existPedidoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Pedido.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Categoria movimientos
+ */
+const existeCategoriaMovimientoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await CategoriaMovimiento.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Movimientos
+ */
+const existeMovimientoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Movimiento.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Arqueos
+ */
+const existeArqueoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Arqueo.findById(id);
+  if (!existe) {
+    throw new Error(`El id no existe ${id}`);
+  }
+};
+
+/**
+ * Turnos
+ */
+const existeTurnoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await Turno.findById(id);
   if (!existe) {
     throw new Error(`El id no existe ${id}`);
   }
@@ -300,7 +348,11 @@ module.exports = {
   codArticuloExiste,
   existeArticuloPorDescripcion,
   existeLineaArticuloPorId,
-  existeFamiliaPorId,
   existeCajaPorId,
   existeCiudadPorId,
+  existPedidoPorId,
+  existeCategoriaMovimientoPorId,
+  existeMovimientoPorId,
+  existeArqueoPorId,
+  existeTurnoPorId,
 };

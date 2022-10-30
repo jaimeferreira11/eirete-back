@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const diffHistory = require("mongoose-audit-trail");
+const { EstadoDelivery, MetodoPago } = require("../../helpers/constants");
 
 const PedidoCounterSchema = Schema({
   seq: { type: Number, default: 0 },
@@ -7,7 +8,7 @@ const PedidoCounterSchema = Schema({
 
 const pedidoCounterColleccion = model("pedidoCounter", PedidoCounterSchema);
 
-const pedidoDetalle = new Schema({
+const PedidoDetalle = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
     ref: "Articulo",
@@ -47,8 +48,13 @@ const metodoPago = new Schema({
   descripcion: {
     type: String,
     required: true,
-    default: "EFECTIVO",
-    emun: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "CHEQUE"],
+    default: MetodoPago.EFECTIVO,
+    emun: [
+      MetodoPago.EFECTIVO,
+      MetodoPago.TARJETA,
+      MetodoPago.TRANSFERENCIA,
+      MetodoPago.CHEQUE,
+    ],
   },
   referencia: {
     type: String,
@@ -57,8 +63,12 @@ const metodoPago = new Schema({
 
 const direccionEnvio = new Schema({
   direccion: {
-    type: Number,
-    required: [true, "El precio unitario es requerido"],
+    type: String,
+    required: [true, "La dirección es obligatoria"],
+  },
+  ciudad: {
+    type: String,
+    required: [true, "La ciudad es obligatoria"],
   },
   contacto: {
     type: String,
@@ -71,7 +81,7 @@ const direccionEnvio = new Schema({
 const PedidoSchema = new Schema({
   nro: {
     type: Number,
-    required: [true, "El nro de pedido es obligatorio"],
+    default: 1,
     unique: true,
   },
   cliente: {
@@ -116,12 +126,17 @@ const PedidoSchema = new Schema({
   tipoPedido: {
     type: String,
     required: true,
-    default: "CAJA",
-    emun: ["CAJA", "DELIVERY"],
+    default: "REGULAR",
+    emun: ["REGULAR", "DELIVERY"],
   },
   estadoDelivery: {
     type: String,
-    emun: ["EN ESPERA", "EN CAMINO", "ENTREGADO", "PERDIDO"],
+    emun: [
+      EstadoDelivery.EN_ESPERA,
+      EstadoDelivery.EN_CAMINO,
+      EstadoDelivery.ENTREGADO,
+      EstadoDelivery.PERDIDO,
+    ],
   },
   direccionEnvio: {
     type: direccionEnvio,
@@ -129,8 +144,11 @@ const PedidoSchema = new Schema({
   obs: {
     type: String,
   },
+  motivoCancelacion: {
+    type: String,
+  },
   detalles: {
-    type: [pedidoDetalle],
+    type: [PedidoDetalle],
     default: [],
     required: [true, "Los detalles son obligatorios"],
   },
@@ -142,7 +160,7 @@ const PedidoSchema = new Schema({
     type: Number,
     required: [true, "El importe es obligatorio"],
   },
-  montoPagado: {
+  montoRecibido: {
     type: Number,
   },
   vuelto: {
@@ -158,7 +176,11 @@ const PedidoSchema = new Schema({
     ref: "Usuario",
     required: true,
   },
-
+  turno: {
+    type: Schema.Types.ObjectId,
+    ref: "Turno",
+    required: [true, "El turno es obligatoria"],
+  },
   fechaModif: {
     type: Date,
   },
@@ -170,11 +192,10 @@ const PedidoSchema = new Schema({
 
 PedidoSchema.plugin(diffHistory.plugin);
 
-const Pedido = model("Pedido", PedidoSchema);
-
 PedidoSchema.pre("save", async function (next) {
   let doc = this;
 
+  console.log("Pre save Pedido");
   let counterDoc = await pedidoCounterColleccion.findOne();
   if (!counterDoc) {
     counterDoc = new pedidoCounterColleccion({ seq: 1 });
@@ -182,12 +203,16 @@ PedidoSchema.pre("save", async function (next) {
     counterDoc.seq++;
   }
   doc.nro = counterDoc.seq;
+  console.log(doc.nro);
   counterDoc.save();
 
   next();
 });
 
+const Pedido = model("Pedido", PedidoSchema);
+
 module.exports = {
   PedidoSchema,
   Pedido,
+  PedidoDetalle,
 };
