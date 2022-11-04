@@ -3,6 +3,7 @@
 node_modules/
 
 .env
+.git
+.vscode
 
-uploads/productos/**.*
-uploads/usuarios/**.*
+uploads/**.*
