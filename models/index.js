@@ -15,6 +15,7 @@ const Sucursal = require("./stock/sucursal");
 const LineaArticulo = require("./stock/linea-articulo");
 const Articulo = require("./stock/articulo");
 const ArticuloSucursal = require("./stock/articulo-sucursal");
+const ArticuloMovimiento = require("./stock/articulo-movimiento");
 
 // transaccion
 const { Pedido, PedidoSchema, PedidoDetalle } = require("./transaccion/pedido");
@@ -54,4 +55,5 @@ module.exports = {
   Arqueo,
   Turno,
   EstadisticaVentas,
+  ArticuloMovimiento,
 };

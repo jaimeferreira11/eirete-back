@@ -54,6 +54,13 @@ const EfectivobilleteMoneda = {
   100000: "Gs. 100.000",
 };
 
+const EstadoMovimientoArticulo = {
+  ENVIADO: "ENVIADO",
+  RECIBIDO: "RECIBIDO",
+  RECHAZADO: "RECHAZADO",
+  FINALIZADO: "FINALIZADO",
+};
+
 module.exports = {
   ClienteOcasional,
   TipoPedido,
@@ -64,4 +71,5 @@ module.exports = {
   EfectivoMoneda,
   EfectivobilleteMoneda,
   MetodoPago,
+  EstadoMovimientoArticulo,
 };

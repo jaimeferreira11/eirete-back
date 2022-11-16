@@ -4,34 +4,14 @@ const mongoose = require("mongoose");
 const ObjectId = require("mongoose").Types.ObjectId;
 const conn = require("../../database/config");
 
-const {
-  Pedido,
-  PedidoDetalle,
-  ArticuloSucursal,
-  Cliente,
-  Persona,
-  Turno,
-} = require("../../models");
+const { Pedido, PedidoDetalle, ArticuloSucursal, Cliente, Persona, Turno } = require("../../models");
 const { skipAcentAndSpace } = require("../../helpers/strings-helper");
-const {
-  ClienteOcasional,
-  TipoPedido,
-  EstadoPedido,
-  EstadoDelivery,
-  TipoImpuesto,
-} = require("../../helpers/constants");
+const { ClienteOcasional, TipoPedido, EstadoPedido, EstadoDelivery, TipoImpuesto } = require("../../helpers/constants");
 const { updatePersona, addPersona } = require("../catastro/personas");
 const { obtenerOrCrearTurno } = require("../tesoreria/turnos");
 
 const getAll = async (req, res = response) => {
-  const {
-    limite = 10,
-    desde = 0,
-    paginado = "true",
-    orderBy = "fechaAlta",
-    direction = -1,
-    search = "",
-  } = req.query;
+  const { limite = 10, desde = 0, paginado = "true", orderBy = "fechaAlta", direction = -1, search = "" } = req.query;
 
   let query = {};
 
@@ -212,13 +192,7 @@ const getByNro = async (req, res = response) => {
 
 const getByCliente = async (req, res = response) => {
   const { id } = req.params;
-  const {
-    limite = 10,
-    desde = 0,
-    paginado = "true",
-    orderBy = "fecha",
-    direction = -1,
-  } = req.query;
+  const { limite = 10, desde = 0, paginado = "true", orderBy = "fecha", direction = -1 } = req.query;
 
   if (paginado == "true") {
     const [total, data] = await Promise.all([
@@ -290,23 +264,12 @@ const getByCliente = async (req, res = response) => {
 
 const getByEstadoDelivery = async (req, res = response) => {
   const { estadoDelivery } = req.params;
-  const {
-    limite = 10,
-    desde = 0,
-    paginado = "true",
-    orderBy = "fechaAlta",
-    direction = -1,
-    search = "",
-  } = req.query;
+  const { limite = 10, desde = 0, paginado = "true", orderBy = "fechaAlta", direction = -1, search = "" } = req.query;
 
   let query = {
     tipoPedido: "DELIVERY",
     estadoPedido: {
-      $in: [
-        EstadoPedido.PENDIENTE,
-        EstadoPedido.PAGADO,
-        EstadoPedido.FACTURADO,
-      ],
+      $in: [EstadoPedido.PENDIENTE, EstadoPedido.PAGADO, EstadoPedido.FACTURADO],
     },
   };
 
@@ -388,10 +351,7 @@ const add = async (req, res = response) => {
 
   /* Verificar cliente*/
   if (pedidoData.cliente.persona.nroDoc != ClienteOcasional) {
-    const cliente = await Cliente.findById(pedidoData.cliente._id).populate(
-      "persona",
-      "-__v"
-    );
+    const cliente = await Cliente.findById(pedidoData.cliente._id).populate("persona", "-__v");
     let crearNuevoCliente = true;
     if (!cliente) {
       // Buscar si ya existe persona
@@ -415,9 +375,23 @@ const add = async (req, res = response) => {
       }
       // crear el cliente
       if (crearNuevoCliente) {
+        let direcciones = [];
+        if (pedidoData.cliente && pedidoData.cliente.direcciones && pedidoData.cliente.direcciones.length > 0) {
+          console.log("Armando la direccion del cliente nuevo");
+          const direccion = {
+            direccion: pedidoData.cliente.direcciones[0].direccion || "",
+            ciudad: pedidoData.cliente.direcciones[0].ciudad || "",
+            predeterminado: true,
+            contacto: pedidoData.cliente.direcciones[0].celular || "",
+            obs: pedidoData.cliente.direcciones[0].obs || "",
+          };
+          direcciones = [direccion];
+        }
+
         const newClienteData = new Cliente({
           persona: existePersona,
           usuarioAlta: req.usuario._id,
+          direcciones: direcciones,
         });
 
         const clienteSaved = await newClienteData.save();
@@ -452,11 +426,7 @@ const add = async (req, res = response) => {
     session.startTransaction();
     /* Verificar articulos*/
     try {
-      await verificarStockPedido(
-        pedidoData.detalles,
-        pedidoData.sucursal._id,
-        session
-      );
+      await verificarStockPedido(pedidoData.detalles, pedidoData.sucursal._id, session);
     } catch (error) {
       console.log(error);
       await session.abortTransaction();
@@ -511,11 +481,7 @@ const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
 
   const { motivoCancelacion = "" } = req.body;
-  const modelBorrado = await Pedido.findByIdAndUpdate(
-    id,
-    { estadoPedido: status, motivoCancelacion },
-    { new: true }
-  );
+  const modelBorrado = await Pedido.findByIdAndUpdate(id, { estadoPedido: status, motivoCancelacion }, { new: true });
 
   res.json(modelBorrado);
 };
@@ -523,11 +489,7 @@ const changeStatus = async (req, res = response) => {
 const changeEstadoDelivery = async (req, res = response) => {
   const { id, estadoDelivery } = req.params;
 
-  const modelBorrado = await Pedido.findByIdAndUpdate(
-    id,
-    { estadoDelivery },
-    { new: true }
-  );
+  const modelBorrado = await Pedido.findByIdAndUpdate(id, { estadoDelivery }, { new: true });
 
   res.json(modelBorrado);
 };
@@ -569,15 +531,11 @@ const verificarStockPedido = async (detalles, sucursalId, session) => {
           select: "-__v",
         },
       });
-      if (!articuloSucursal)
-        throw new Error("No se encontro registros para la sucursal");
+      if (!articuloSucursal) throw new Error("No se encontro registros para la sucursal");
 
-      const isFound = articuloSucursal.articulos.filter(
-        (art) => art.articulo._id == detalle.articulo._id
-      );
+      const isFound = articuloSucursal.articulos.filter((art) => art.articulo._id == detalle.articulo._id);
 
-      if (!isFound || isFound.length == 0)
-        throw new Error("El articulo no existe en la sucursal");
+      if (!isFound || isFound.length == 0) throw new Error("El articulo no existe en la sucursal");
 
       const stockDisponible = isFound[0].stock - isFound[0].stockBloqueado;
       if (stockDisponible < detalle.cantidad) {

@@ -6,4 +6,6 @@ node_modules/
 .git
 .vscode
 
+.DS_Store
+**/DS_Store
 uploads/**.*
