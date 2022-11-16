@@ -35,7 +35,7 @@ router.get(
 );
 
 router.post(
-  '/',
+  '/enviar',
   [
     validarJWT,
     check('sucursalOrigen').custom(existeSucursalPorId),
