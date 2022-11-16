@@ -1,8 +1,8 @@
-const { response } = require("express");
-const { ObjectId } = require("mongoose").Types;
+const { response } = require('express');
+const { ObjectId } = require('mongoose').Types;
 
-const { ArticuloSucursal, Sucursal, Articulo } = require("../../models");
-const lineaArticulo = require("../../models/stock/linea-articulo");
+const { ArticuloSucursal, Sucursal, Articulo } = require('../../models');
+const lineaArticulo = require('../../models/stock/linea-articulo');
 
 const getBySucursal = async (req, res = response) => {
   const { id } = req.params;
@@ -11,23 +11,23 @@ const getBySucursal = async (req, res = response) => {
     sucursal: id,
   };
 
-  if (paginado == "true") {
+  if (paginado == 'true') {
     const [total, data] = await Promise.all([
       ArticuloSucursal.countDocuments(query),
       ArticuloSucursal.find(query)
         .populate({
-          path: "articulos",
-          select: "-__v",
+          path: 'articulos',
+          select: '-__v',
           populate: {
-            path: "articulo",
-            select: "-__v",
+            path: 'articulo',
+            select: '-__v',
             populate: {
-              path: "lineaArticulo",
-              select: "-__v",
+              path: 'lineaArticulo',
+              select: '-__v',
             },
           },
         })
-        .populate("sucursal", "descripcion")
+        .populate('sucursal', 'descripcion')
         .skip(Number(desde))
         .limit(Number(limite)),
     ]);
@@ -39,18 +39,18 @@ const getBySucursal = async (req, res = response) => {
   } else {
     const data = await ArticuloSucursal.find(query)
       .populate({
-        path: "articulos",
-        select: "-__v",
+        path: 'articulos',
+        select: '-__v',
         populate: {
-          path: "articulo",
-          select: "-__v",
+          path: 'articulo',
+          select: '-__v',
           populate: {
-            path: "lineaArticulo",
-            select: "-__v",
+            path: 'lineaArticulo',
+            select: '-__v',
           },
         },
       })
-      .populate("sucursal", "descripcion");
+      .populate('sucursal', 'descripcion');
     res.json(data);
   }
 };
@@ -72,8 +72,8 @@ const getLineasBySucursal = async (req, res = response) => {
               estado,
             })
               .populate({
-                path: "lineaArticulo",
-                select: "-__v",
+                path: 'lineaArticulo',
+                select: '-__v',
               })
               .then((articulo) => {
                 const isFound = lineas.some(
@@ -108,14 +108,12 @@ const getArticulosBySucursal = async (req, res = response) => {
               lineaArticulo: idLinea,
             })
               .populate({
-                path: "lineaArticulo",
-                select: "-__v",
+                path: 'lineaArticulo',
+                select: '-__v',
               })
               .then((articulo) => {
                 if (!articulo) return;
-                const isFound = articulos.some(
-                  (art) => art._id == articulo._id
-                );
+                const isFound = articulos.some((art) => art._id == articulo._id);
                 articuloStock.articulo = articulo;
                 if (!isFound) articulos.push(articuloStock);
               });
@@ -131,7 +129,7 @@ const updateArticuloSucursal = async (req, res = response) => {
   const { id } = req.params;
   const { estado = true, ...body } = req.body;
 
-  console.log("Actualizando el stock", body);
+  console.log('Actualizando el stock', body);
   try {
     await ArticuloSucursal.findOne({
       sucursal: id,
@@ -143,7 +141,7 @@ const updateArticuloSucursal = async (req, res = response) => {
         });
       }
 
-      console.log("Cantidad de articulos en la sucursal", doc.articulos.length);
+      console.log('Cantidad de articulos en la sucursal', doc.articulos.length);
 
       let data = doc.articulos.find((a) => a.articulo == body.articulo);
       if (!data) {
@@ -166,10 +164,7 @@ const updateArticuloSucursal = async (req, res = response) => {
 
       doc.articulos[doc.articulos.findIndex((el) => el._id == data._id)] = body;
       console.log(doc.articulos);
-      console.log(
-        "Cantidad de articulos en la sucursal despues: ",
-        doc.articulos.length
-      );
+      console.log('Cantidad de articulos en la sucursal despues: ', doc.articulos.length);
       await ArticuloSucursal.findByIdAndUpdate(doc._id, doc, {
         new: true,
       });
@@ -222,10 +217,7 @@ const createArticuloSucursal = async (sucursal_id, usuario_id) => {
 const addArticuloToSucursales = async (articulo, usuario_id) => {
   try {
     const articulosSucursal = await ArticuloSucursal.find();
-    console.log(
-      "Articulos en sucursal antes",
-      articulosSucursal[0].articulos.length
-    );
+    console.log('Articulos en sucursal antes', articulosSucursal[0].articulos.length);
 
     articulosSucursal.map(async (as = ArticuloSucursal) => {
       as.articulos.push({
@@ -236,10 +228,7 @@ const addArticuloToSucursales = async (articulo, usuario_id) => {
     });
 
     const articulosSucursal1 = await ArticuloSucursal.find();
-    console.log(
-      "Articulos en sucursal despues",
-      articulosSucursal1[0].articulos.length
-    );
+    console.log('Articulos en sucursal despues', articulosSucursal1[0].articulos.length);
   } catch (error) {
     console.log(error);
     throw new Error(error);
@@ -252,18 +241,18 @@ const getArticulosByQuery = async (req, res = response) => {
 
   if (!search) return res.json([]);
 
-  console.log("Buscando articulo en la sucursal: ", search);
+  console.log('Buscando articulo en la sucursal: ', search);
 
   const articulosSucursal = await ArticuloSucursal.findOne({ sucursal: id })
     .populate({
-      path: "articulos",
-      select: "-__v",
+      path: 'articulos',
+      select: '-__v',
       populate: {
-        path: "articulo",
-        select: "-__v",
+        path: 'articulo',
+        select: '-__v',
       },
     })
-    .populate("sucursal", "descripcion");
+    .populate('sucursal', 'descripcion');
 
   if (!articulosSucursal) {
     return res.status(404).json({
@@ -281,15 +270,12 @@ const getArticulosByQuery = async (req, res = response) => {
 
     if (lineasAgregadas[art.articulo.lineaArticulo]) {
       const index = lineasAgregadas[art.articulo.lineaArticulo] - 1;
-      currentMemoValue[index].articulos = [
-        ...currentMemoValue[index].articulos,
-        art,
-      ];
+      currentMemoValue[index].articulos = [...currentMemoValue[index].articulos, art];
       return prev;
     } else {
       const linea = await lineaArticulo
         .findById(art.articulo.lineaArticulo)
-        .select("_id descripcion")
+        .select('_id descripcion')
         .lean();
       lineasAgregadas[art.articulo.lineaArticulo] = currentMemoValue.length + 1;
 
