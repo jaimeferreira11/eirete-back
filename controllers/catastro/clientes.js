@@ -165,11 +165,7 @@ const add = async (req, res = response) => {
     } else {
       console.log("Ya existe la persona");
       // actualizar persona
-      const personaUpdated = await Persona.findByIdAndUpdate(
-        personaData._id,
-        personaData,
-        { new: true }
-      );
+      const personaUpdated = await Persona.findByIdAndUpdate(personaData._id, personaData, { new: true });
       const clienteDB = await Cliente.findOne({
         persona: ObjectId(personaUpdated._id),
       });
@@ -188,9 +184,7 @@ const add = async (req, res = response) => {
         persona: persona._id,
         usuarioAlta: req.usuario._id,
       };
-      res.json(
-        await Cliente.findByIdAndUpdate(idCliente, clienteData, { new: true })
-      );
+      res.json(await Cliente.findByIdAndUpdate(idCliente, clienteData, { new: true }));
     } else {
       console.log("Insertando el cliente ");
 
@@ -284,11 +278,7 @@ const updateDirecciones = async (req, res = response) => {
 
 const changeStatus = async (req, res = response) => {
   const { id, status } = req.params;
-  const modelBorrado = await Cliente.findByIdAndUpdate(
-    id,
-    { estado: status },
-    { new: true }
-  );
+  const modelBorrado = await Cliente.findByIdAndUpdate(id, { estado: status }, { new: true });
 
   res.json(modelBorrado);
 };

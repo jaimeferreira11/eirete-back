@@ -1,35 +1,35 @@
-const ClienteOcasional = "999999";
+const ClienteOcasional = '999999';
 
 const TipoPedido = {
-  REGULAR: "REGULAR",
-  DELIVERY: "DELIVERY",
+  REGULAR: 'REGULAR',
+  DELIVERY: 'DELIVERY',
 };
 
 const TipoFactura = {
-  CONTADO: "CONTADO",
-  CREDITO: "CREDITO",
+  CONTADO: 'CONTADO',
+  CREDITO: 'CREDITO',
 };
 
 const EstadoPedido = {
-  PENDIENTE: "PENDIENTE",
-  PAGADO: "PAGADO",
-  FACTURADO: "FACTURADO",
-  CANCELADO: "CANCELADO",
-  ANULADO: "ANULADO",
-  REVERSADO: "REVERSADO",
+  PENDIENTE: 'PENDIENTE',
+  PAGADO: 'PAGADO',
+  FACTURADO: 'FACTURADO',
+  CANCELADO: 'CANCELADO',
+  ANULADO: 'ANULADO',
+  REVERSADO: 'REVERSADO',
 };
 const EstadoDelivery = {
-  EN_ESPERA: "EN_ESPERA",
-  EN_CAMINO: "EN_CAMINO",
-  ENTREGADO: "ENTREGADO",
-  PERDIDO: "PERDIDO",
+  EN_ESPERA: 'EN_ESPERA',
+  EN_CAMINO: 'EN_CAMINO',
+  ENTREGADO: 'ENTREGADO',
+  PERDIDO: 'PERDIDO',
 };
 
 const MetodoPago = {
-  EFECTIVO: "EFECTIVO",
-  TARJETA: "TARJETA",
-  TRANSFERENCIA: "TRANSFERENCIA",
-  CHEQUE: "CHEQUE",
+  EFECTIVO: 'EFECTIVO',
+  TARJETA: 'TARJETA',
+  TRANSFERENCIA: 'TRANSFERENCIA',
+  CHEQUE: 'CHEQUE',
 };
 
 const TipoImpuesto = {
@@ -39,19 +39,26 @@ const TipoImpuesto = {
 };
 
 const EfectivoMoneda = {
-  50: "Gs. 50",
-  100: "Gs. 100",
-  500: "Gs. 500",
-  1000: "Gs. 1.000",
+  50: 'Gs. 50',
+  100: 'Gs. 100',
+  500: 'Gs. 500',
+  1000: 'Gs. 1.000',
 };
 
 const EfectivobilleteMoneda = {
-  2000: "Gs. 2.000",
-  5000: "Gs. 5.000",
-  10000: "Gs. 10.000",
-  20000: "Gs. 20.000",
-  50000: "Gs. 50.000",
-  100000: "Gs. 100.000",
+  2000: 'Gs. 2.000',
+  5000: 'Gs. 5.000',
+  10000: 'Gs. 10.000',
+  20000: 'Gs. 20.000',
+  50000: 'Gs. 50.000',
+  100000: 'Gs. 100.000',
+};
+
+const EstadoMovimientoArticulo = {
+  PENDIENTE: 'PENDIENTE',
+  ATENCION: 'ATENCION',
+  RECHAZADO: 'RECHAZADO',
+  FINALIZADO: 'FINALIZADO',
 };
 
 module.exports = {
@@ -64,4 +71,5 @@ module.exports = {
   EfectivoMoneda,
   EfectivobilleteMoneda,
   MetodoPago,
+  EstadoMovimientoArticulo,
 };
