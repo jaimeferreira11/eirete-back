@@ -15,25 +15,26 @@ const {
   Movimiento,
   Arqueo,
   Turno,
-} = require("../models");
+  ArticuloMovimiento,
+} = require('../models');
 
-const ObjectId = require("mongoose").Types.ObjectId;
+const ObjectId = require('mongoose').Types.ObjectId;
 
-const esRoleValido = async (rol = "") => {
+const esRoleValido = async (rol = '') => {
   const existeRol = await Role.findOne({ rol: rol.toUpperCase() });
   if (!existeRol) {
     throw new Error(`El rol ${rol} no está registrado en la BD`);
   }
 };
 
-const esPerfilValido = async (perfil = "") => {
+const esPerfilValido = async (perfil = '') => {
   const existe = await Perfil.findById(perfil);
   if (!existe) {
     throw new Error(`El perfil ${perfil} no está registrado en la BD`);
   }
 };
 
-const usernameExiste = async (username = "") => {
+const usernameExiste = async (username = '') => {
   // Verificar si el username existe
   const existe = await Usuario.findOne({ username: username.toUpperCase() });
   if (existe) {
@@ -90,7 +91,7 @@ const existePersonaPorId = async (id) => {
   }
 };
 
-const nroDocExiste = async (nroDoc = "") => {
+const nroDocExiste = async (nroDoc = '') => {
   // Verificar si el username existe
   const existe = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
   if (existe) {
@@ -109,10 +110,9 @@ const existeClientePorId = async (id) => {
   }
 };
 
-const existeClientePorDoc = async (nroDoc = "") => {
+const existeClientePorDoc = async (nroDoc = '') => {
   const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
-  if (!persona)
-    throw new Error(`No existe el persona ni cliente con doc: ${nroDoc}`);
+  if (!persona) throw new Error(`No existe el persona ni cliente con doc: ${nroDoc}`);
   // Verificar si la persona existe como cliente
   const existe = await Cliente.findOne({
     persona: new ObjectId(persona._id),
@@ -133,7 +133,7 @@ const existeProveedorPorId = async (id) => {
   }
 };
 
-const existeProveedorPorNrodoc = async (nroDoc = "") => {
+const existeProveedorPorNrodoc = async (nroDoc = '') => {
   const persona = await Persona.findOne({ nroDoc: nroDoc.toUpperCase() });
   if (persona) {
     // Verificar si la persona ya existe como aseguradora
@@ -141,9 +141,7 @@ const existeProveedorPorNrodoc = async (nroDoc = "") => {
       persona: new ObjectId(persona._id),
     });
     if (existe) {
-      throw new Error(
-        `La persona ${persona.nombreApellido}, ya existe como proveedor`
-      );
+      throw new Error(`La persona ${persona.nombreApellido}, ya existe como proveedor`);
     }
   }
 };
@@ -167,28 +165,24 @@ const existeArticuloPorId = async (id) => {
   }
 };
 
-const codArticuloExiste = async (codigoBarra = "") => {
+const codArticuloExiste = async (codigoBarra = '') => {
   // Verificar si el username existe
   const existe = await Articulo.findOne({
     codigoBarra: codigoBarra.toUpperCase(),
   });
   if (existe) {
-    throw new Error(
-      `El articulo con codigo de barra: ${codigoBarra}, ya está registrado`
-    );
+    throw new Error(`El articulo con codigo de barra: ${codigoBarra}, ya está registrado`);
   }
 };
 
-const existeArticuloPorDescripcion = async (descripcion = "") => {
+const existeArticuloPorDescripcion = async (descripcion = '') => {
   // Verificar si el correo existe
   const existe = await Articulo.findOne({
     descripcion: descripcion.toUpperCase().trim(),
   });
 
   if (existe) {
-    throw new Error(
-      `El articulo con descripcion: ${descripcion}, ya está registrado`
-    );
+    throw new Error(`El articulo con descripcion: ${descripcion}, ya está registrado`);
   }
 };
 
@@ -280,14 +274,23 @@ const existeTurnoPorId = async (id) => {
 };
 
 /**
+ * Articulos Movimiento
+ */
+const existeArticuloMovimientoPorId = async (id) => {
+  // Verificar si el correo existe
+  const existe = await ArticuloMovimiento.findById(id);
+  if (!existe) {
+    throw new Error(`El movimiento no existe ${id}`);
+  }
+};
+
+/**
  * Validar colecciones permitidas
  */
-const coleccionesPermitidas = (coleccion = "", colecciones = []) => {
+const coleccionesPermitidas = (coleccion = '', colecciones = []) => {
   const incluida = colecciones.includes(coleccion);
   if (!incluida) {
-    throw new Error(
-      `La colección ${coleccion} no es permitida, ${colecciones}`
-    );
+    throw new Error(`La colección ${coleccion} no es permitida, ${colecciones}`);
   }
   return true;
 };
@@ -300,9 +303,9 @@ const crearPersonaSiNoExiste = async (personaData = Persona) => {
 
   console.log(`No existe la persona ${personaData.nroDoc}, agregar....`);
   // no existe la persona, agregar
-  if (personaData.nroDoc.indexOf("-") > -1 && !personaData.ruc) {
+  if (personaData.nroDoc.indexOf('-') > -1 && !personaData.ruc) {
     personaData.ruc = personaData.nroDoc;
-    personaData.tipoDoc = "RUC";
+    personaData.tipoDoc = 'RUC';
   }
   personaData.nombreApellido = personaData.nombreApellido.toUpperCase();
 
@@ -318,9 +321,7 @@ const crearClienteSiNoExiste = async (clienteData = Cliente) => {
   // el cliente ya existe, retornar
   if (clienteDB) return clienteDB;
 
-  console.log(
-    `No existe el cliente con idpersona ${clienteData.persona}, agregar....`
-  );
+  console.log(`No existe el cliente con idpersona ${clienteData.persona}, agregar....`);
 
   const newCliente = new Cliente(clienteData);
   return await newCliente.save();
@@ -355,4 +356,5 @@ module.exports = {
   existeMovimientoPorId,
   existeArqueoPorId,
   existeTurnoPorId,
+  existeArticuloMovimientoPorId,
 };

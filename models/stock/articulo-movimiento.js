@@ -1,16 +1,16 @@
-const { Schema, model } = require("mongoose");
-const diffHistory = require("mongoose-audit-trail");
-const { EstadoMovimientoArticulo } = require("../../helpers/constants");
+const { Schema, model } = require('mongoose');
+const diffHistory = require('mongoose-audit-trail');
+const { EstadoMovimientoArticulo } = require('../../helpers/constants');
 
 const detalleMovimiento = new Schema({
   articulo: {
     type: Schema.Types.ObjectId,
-    ref: "Articulo",
-    required: [true, "El articulo es obligatorio"],
+    ref: 'Articulo',
+    required: [true, 'El articulo es obligatorio'],
   },
   enviado: {
     type: Number,
-    required: [true, "La cantidad es obligatoria"],
+    required: [true, 'La cantidad es obligatoria'],
     default: 0,
   },
   recibido: {
@@ -23,7 +23,7 @@ const ArticuloMovCounterSchema = Schema({
   seq: { type: Number, default: 0 },
 });
 
-const articuloMovCounterColleccion = model("articuloMovCounter", ArticuloMovCounterSchema);
+const articuloMovCounterColleccion = model('articuloMovCounter', ArticuloMovCounterSchema);
 
 const ArticuloMovimientoSchema = new Schema({
   numero: {
@@ -33,28 +33,37 @@ const ArticuloMovimientoSchema = new Schema({
   },
   codigo: {
     type: String,
-    required: [true, "El codigo de seguridad es obligatorio"],
+    required: [true, 'El codigo de seguridad es obligatorio'],
   },
   sucursalDestino: {
     type: Schema.Types.ObjectId,
-    ref: "Sucursal",
-    required: [true, "La sucursal destino es obligatoria"],
+    ref: 'Sucursal',
+    required: [true, 'La sucursal destino es obligatoria'],
   },
   sucursalOrigen: {
     type: Schema.Types.ObjectId,
-    ref: "Sucursal",
-    required: [true, "La sucursal origeb es obligatoria"],
+    ref: 'Sucursal',
+    required: [true, 'La sucursal origen es obligatoria'],
   },
   estado: {
     type: String,
-    emun: [EstadoMovimientoArticulo.ENVIADO, EstadoMovimientoArticulo.RECIBIDO, EstadoMovimientoArticulo.RECHAZADO],
+    emun: [
+      EstadoMovimientoArticulo.PENDIENTE,
+      EstadoMovimientoArticulo.ATENCION,
+      EstadoMovimientoArticulo.RECHAZADO,
+      EstadoMovimientoArticulo.FINALIZADO,
+    ],
+    default: EstadoMovimientoArticulo.PENDIENTE,
+    required: [true, 'El  estado es obligatorio'],
   },
   detalles: {
     type: [detalleMovimiento],
     default: [],
-    required: [true, "Los detalles son obligatorios"],
+    required: [true, 'Los detalles son obligatorios'],
   },
-
+  obs: {
+    type: String,
+  },
   fechaAlta: {
     type: Date,
     require: true,
@@ -62,7 +71,7 @@ const ArticuloMovimientoSchema = new Schema({
   },
   usuarioAlta: {
     type: Schema.Types.ObjectId,
-    ref: "Usuario",
+    ref: 'Usuario',
     required: true,
   },
 
@@ -71,13 +80,13 @@ const ArticuloMovimientoSchema = new Schema({
   },
   usuarioModif: {
     type: Schema.Types.ObjectId,
-    ref: "Usuario",
+    ref: 'Usuario',
   },
 });
 
 ArticuloMovimientoSchema.plugin(diffHistory.plugin);
 
-ArticuloMovimientoSchema.pre("save", async function (next) {
+ArticuloMovimientoSchema.pre('save', async function (next) {
   let doc = this;
 
   let counterDoc = await articuloMovCounterColleccion.findOne();
@@ -92,4 +101,4 @@ ArticuloMovimientoSchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = model("ArticuloMovimiento", ArticuloMovimientoSchema);
+module.exports = model('ArticuloMovimiento', ArticuloMovimientoSchema);
