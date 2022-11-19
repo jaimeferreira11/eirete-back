@@ -80,6 +80,12 @@ const enviar = async (req, res = response) => {
   const { body } = req;
 
   try {
+    // evitar que se envie a la misma sucursal
+    if (body.sucursalOrigen === body.sucursalDestino)
+      return res.status(400).json({
+        msg: `No se puede enviar a la misma sucursal`,
+      });
+
     // revisar las cantidades
     const existeCero = body.detalles.some((d) => d.enviado <= 0);
     if (existeCero)
@@ -142,7 +148,7 @@ const recibir = async (req, res = response) => {
 
   const artMovBd = await ArticuloMovimiento.findById(id);
 
-  if (artMovBd.codigo !== codigo) {
+  if (artMovBd.codigo !== codigo || body.estado === EstadoMovimientoArticulo.RECHAZADO) {
     return res.status(400).json({
       msg: `El codigo de seguridad no coincide`,
     });
