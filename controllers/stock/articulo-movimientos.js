@@ -29,7 +29,7 @@ const filter = async (req, res = response) => {
   if (paginado || paginado == 'true') {
     const [total, data] = await Promise.all([
       ArticuloMovimiento.countDocuments(query),
-      ArticuloMovimiento.find(query)
+      ArticuloMovimiento.find(query, { codigo: 0 })
         .populate({
           path: 'detalles',
           select: '-__v',
@@ -55,7 +55,7 @@ const filter = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await ArticuloMovimiento.find(query)
+    const data = await ArticuloMovimiento.find(query, { codigo: 0 })
       .populate({
         path: 'detalles',
         select: '-__v',
