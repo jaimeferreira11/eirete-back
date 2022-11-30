@@ -29,7 +29,7 @@ const filter = async (req, res = response) => {
   if (paginado || paginado == 'true') {
     const [total, data] = await Promise.all([
       ArticuloMovimiento.countDocuments(query),
-      ArticuloMovimiento.find(query)
+      ArticuloMovimiento.find(query, { codigo: 0 })
         .populate({
           path: 'detalles',
           select: '-__v',
@@ -55,7 +55,7 @@ const filter = async (req, res = response) => {
       data,
     });
   } else {
-    const data = await ArticuloMovimiento.find(query)
+    const data = await ArticuloMovimiento.find(query, { codigo: 0 })
       .populate({
         path: 'detalles',
         select: '-__v',
@@ -80,6 +80,12 @@ const enviar = async (req, res = response) => {
   const { body } = req;
 
   try {
+    // evitar que se envie a la misma sucursal
+    if (body.sucursalOrigen === body.sucursalDestino)
+      return res.status(400).json({
+        msg: `No se puede enviar a la misma sucursal`,
+      });
+
     // revisar las cantidades
     const existeCero = body.detalles.some((d) => d.enviado <= 0);
     if (existeCero)
@@ -120,6 +126,7 @@ const enviar = async (req, res = response) => {
         charset: 'alphanumeric',
         capitalization: 'lowercase',
       }),
+      estado: EstadoMovimientoArticulo.PENDIENTE,
       ...body,
     });
 
@@ -142,7 +149,7 @@ const recibir = async (req, res = response) => {
 
   const artMovBd = await ArticuloMovimiento.findById(id);
 
-  if (artMovBd.codigo !== codigo) {
+  if (artMovBd.codigo !== codigo || body.estado === EstadoMovimientoArticulo.RECHAZADO) {
     return res.status(400).json({
       msg: `El codigo de seguridad no coincide`,
     });

@@ -88,8 +88,9 @@ router.put(
       .isNumeric({ min: 1 })
       .optional(),
     check('estado', 'Estado del movimiento no es valido')
-      .isIn([EstadoMovimientoArticulo.PENDIENTE, EstadoMovimientoArticulo.ATENCION])
-      .optional(),
+      .isIn([EstadoMovimientoArticulo.FINALIZADO,
+         EstadoMovimientoArticulo.ATENCION,
+         EstadoMovimientoArticulo.RECHAZADO]).not().isEmpty(),
     validarCampos,
   ],
   recibir
