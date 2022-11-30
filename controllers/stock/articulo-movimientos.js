@@ -126,6 +126,7 @@ const enviar = async (req, res = response) => {
         charset: 'alphanumeric',
         capitalization: 'lowercase',
       }),
+      estado: EstadoMovimientoArticulo.PENDIENTE,
       ...body,
     });
 
