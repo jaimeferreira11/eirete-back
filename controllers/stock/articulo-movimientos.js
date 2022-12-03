@@ -149,7 +149,7 @@ const recibir = async (req, res = response) => {
 
   const artMovBd = await ArticuloMovimiento.findById(id);
 
-  if (artMovBd.codigo !== codigo || body.estado === EstadoMovimientoArticulo.RECHAZADO) {
+  if (artMovBd.codigo !== codigo || body.estado !== EstadoMovimientoArticulo.RECHAZADO) {
     return res.status(400).json({
       msg: `El codigo de seguridad no coincide`,
     });
