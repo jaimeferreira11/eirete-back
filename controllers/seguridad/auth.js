@@ -1,14 +1,14 @@
-const { response } = require("express");
-const mongoose = require("mongoose");
-const ObjectId = require("mongoose").Types.ObjectId;
+const { response } = require('express');
+const mongoose = require('mongoose');
+const ObjectId = require('mongoose').Types.ObjectId;
 
-const bcryptjs = require("bcryptjs");
+const bcryptjs = require('bcryptjs');
 
-const { Usuario, Perfil, Menu, Turno } = require("../../models");
+const { Usuario, Perfil, Menu, Turno } = require('../../models');
 
-const { generarJWT } = require("../../helpers/generar-jwt");
-const { googleVerify } = require("../../helpers/google-verify");
-const { obtenerOrCrearTurno } = require("../tesoreria/turnos");
+const { generarJWT } = require('../../helpers/generar-jwt');
+const { googleVerify } = require('../../helpers/google-verify');
+const { obtenerOrCrearTurno } = require('../tesoreria/turnos');
 
 const login = async (req, res = response) => {
   const { username, password } = req.body;
@@ -16,21 +16,20 @@ const login = async (req, res = response) => {
 
   try {
     // Verificar si el email existe
-    let usuario = await Usuario.findOne({ username }).populate(
-      "perfiles",
-      "descripcion"
-    );
+    let usuario = await Usuario.findOne({ username })
+      .populate('perfiles', 'descripcion')
+      .populate('sucursal', 'descripcion');
 
     if (!usuario) {
       return res.status(400).json({
-        msg: "Usuario / Password no son correctos ",
+        msg: 'Usuario / Password no son correctos ',
       });
     }
 
     // SI el usuario está activo
     if (!usuario.estado) {
       return res.status(400).json({
-        msg: "Usuario / Password no son correctos",
+        msg: 'Usuario / Password no son correctos',
       });
     }
 
@@ -38,7 +37,7 @@ const login = async (req, res = response) => {
     const validPassword = bcryptjs.compareSync(password, usuario.password);
     if (!validPassword) {
       return res.status(400).json({
-        msg: "Usuario / Password no son correctos - password",
+        msg: 'Usuario / Password no son correctos - password',
       });
     }
 
@@ -51,11 +50,11 @@ const login = async (req, res = response) => {
     })
       .populate({
         // nombre del campo
-        path: "programas",
+        path: 'programas',
         // filtering field, you can use mongoDB syntax
         match: { estado: true },
         // Explicitly exclude `_id`, see http://bit.ly/2aEfTdB
-        select: "-__v",
+        select: '-__v',
       })
       .sort({ orden: 1 });
 
@@ -72,7 +71,7 @@ const login = async (req, res = response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      msg: "Hable con el administrador",
+      msg: 'Hable con el administrador',
     });
   }
 };
@@ -90,7 +89,7 @@ const googleSignin = async (req, res = response) => {
       const data = {
         nombre,
         correo,
-        password: ":P",
+        password: ':P',
         img,
         google: true,
       };
@@ -102,7 +101,7 @@ const googleSignin = async (req, res = response) => {
     // Si el usuario en DB
     if (!usuario.estado) {
       return res.status(401).json({
-        msg: "Hable con el administrador, usuario bloqueado",
+        msg: 'Hable con el administrador, usuario bloqueado',
       });
     }
 
@@ -115,7 +114,7 @@ const googleSignin = async (req, res = response) => {
     });
   } catch (error) {
     res.status(400).json({
-      msg: "Token de Google no es válido",
+      msg: 'Token de Google no es válido',
     });
   }
 };
@@ -124,10 +123,7 @@ const validarTokenUsuario = async (req, res = response) => {
   // Generar el JWT
   const token = await generarJWT(req.usuario._id);
 
-  let usuario = await Usuario.findById(req.usuario._id).populate(
-    "perfiles",
-    "descripcion"
-  );
+  let usuario = await Usuario.findById(req.usuario._id).populate('perfiles', 'descripcion');
 
   // Obtener los perfiles del usuario
   const menus = await Menu.find({
@@ -135,11 +131,11 @@ const validarTokenUsuario = async (req, res = response) => {
   })
     .populate({
       // nombre del campo
-      path: "programas",
+      path: 'programas',
       // filtering field, you can use mongoDB syntax
       match: { estado: true },
       // Explicitly exclude `_id`, see http://bit.ly/2aEfTdB
-      select: "-__v",
+      select: '-__v',
     })
     .sort({ orden: 1 });
 
