@@ -18,6 +18,13 @@ const filter = async (req, res = response) => {
 
   if (estado) {
     query.estado = estado;
+    // if (
+    //   estado === EstadoMovimientoArticulo.ATENCION ||
+    //   estado === EstadoMovimientoArticulo.RECHAZADO
+    // ) {
+    //   query.estado = [EstadoMovimientoArticulo.RECHAZADO, EstadoMovimientoArticulo.ATENCION];
+    // } else {
+    // }
   }
   if (sucursalOrigen) {
     query.sucursalOrigen = sucursalOrigen;
@@ -94,23 +101,30 @@ const enviar = async (req, res = response) => {
       });
     // revisar si hay stock
     const articuloSucursal = await ArticuloSucursal.findOne({ sucursal: body.sucursalOrigen });
-
     if (!articuloSucursal)
       return res.status(400).json({
         msg: `No se encontró articulos en esa sucursal`,
       });
 
+    let hasError = false;
     body.detalles.forEach((det) => {
-      const artEnStock = articuloSucursal.articulos.find((a) => (a.articulo = det.articulo));
-      if (!artEnStock)
+      const artEnStock = articuloSucursal.articulos.find((a) => {
+        return a.articulo._id == det.articulo._id;
+      });
+      if (!artEnStock) {
+        hasError = true;
         return res.status(400).json({
-          msg: `No existe el articulo ${det.articulo} en la sucursal`,
+          msg: `No existe el articulo ${det.articulo._id} en la sucursal`,
         });
+      }
 
-      if (artEnStock.stock < det.enviado)
+      if (artEnStock.stock < det.enviado) {
+        console.info('Stock actual: ', artEnStock.stock, 'Enviado', det.enviado);
+        hasError = true;
         return res.status(400).json({
           msg: `No hay stock suficiente para el articulo ${artEnStock.articulo}`,
         });
+      }
 
       articuloSucursal.articulos.map((artS) => {
         if (artS.articulo == det.articulo._id) {
@@ -118,6 +132,7 @@ const enviar = async (req, res = response) => {
         }
       });
     });
+    if (hasError) return res;
 
     const newModel = new ArticuloMovimiento({
       usuarioAlta: req.usuario._id,
@@ -133,10 +148,11 @@ const enviar = async (req, res = response) => {
     await newModel.save();
 
     // Bloquear el articulo
-    articuloSucursal.save();
+    await articuloSucursal.save();
 
     res.json(newModel);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       msg: `Hable con el administrador`,
     });
@@ -149,7 +165,8 @@ const recibir = async (req, res = response) => {
 
   const artMovBd = await ArticuloMovimiento.findById(id);
 
-  if (artMovBd.codigo !== codigo || body.estado !== EstadoMovimientoArticulo.RECHAZADO) {
+  if (artMovBd.codigo !== codigo && body.estado !== EstadoMovimientoArticulo.RECHAZADO) {
+    console.info('El codigo no coincide', codigo);
     return res.status(400).json({
       msg: `El codigo de seguridad no coincide`,
     });
@@ -172,6 +189,7 @@ const recibir = async (req, res = response) => {
   // si es rechazado
   if (body.estado === EstadoMovimientoArticulo.RECHAZADO) {
     artMovBd.estado = EstadoMovimientoArticulo.RECHAZADO;
+    artMovBd.obs = body.obs;
     // devolver stock
     artMovBd.detalles.forEach((det) => {
       // desbloquear stock en origen
