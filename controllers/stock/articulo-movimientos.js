@@ -189,6 +189,7 @@ const recibir = async (req, res = response) => {
   // si es rechazado
   if (body.estado === EstadoMovimientoArticulo.RECHAZADO) {
     artMovBd.estado = EstadoMovimientoArticulo.RECHAZADO;
+    artMovBd.obs = body.obs;
     // devolver stock
     artMovBd.detalles.forEach((det) => {
       // desbloquear stock en origen
