@@ -58,6 +58,45 @@ $ docker ps
 $ docker logs <container id>
 ```
 
+## Deploy in Ubuntu server
+
+- Descargar el codigo desde el github
+
+- Instalar las dependencias
+
+  `npm install`
+
+- Configurar las variables de entorno en el archivo `/.env`
+
+- Configurar variables de entorno
+
+```
+  export MONGODB_CNN=
+  export SECRETORPRIVATEKEY=
+  export PORT=
+```
+
+- Intall pm2
+
+  `sudo npm install pm2 -g`
+
+- Hacer el build
+
+  `npm run build`
+
+- Correr la aplicacion
+
+  `pm2 --name eirete-back start npm -- start`
+
+- Guardar la configuracion
+
+  `pm2 save`
+
+- Configurar el autoinicio
+
+  `pm2 startup`
+
+
 ## Documentación de las APIs
 
 En el navegador:
