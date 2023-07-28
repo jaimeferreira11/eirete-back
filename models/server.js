@@ -49,8 +49,12 @@ class Server {
   }
 
   middlewares() {
+    const corsOptions = {
+      origin: '*',
+    };
+
     // CORS
-    this.app.use(cors());
+    this.app.use(cors(corsOptions));
 
     // Lectura y parseo del body
     this.app.use(express.json());
