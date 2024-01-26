@@ -43,7 +43,7 @@ Aplicacion RestFull
 2. Ejecutar la aplicacion en el contenedor
 
 ```
-   docker run  -p 8080:8080 --env-file ./.env  eirete-back
+   docker run  -p 8080:8080 --env-file ./.env  eirete-rest-api:1.0 
 ```
 
 3. Comprobar que el contenedor esté corriendo
